@@ -1,0 +1,12 @@
+// packages/parser/tsconfig.json
+{
+  "extends": "@mdck/tsconfig/base.json",
+  "include": [
+    "src",
+    "vitest.config.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

@@ -1,0 +1,20 @@
+// tsconfig.json
+{
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+  },
+  // pathsを設定することで、各パッケージへの参照を容易にする
+  "references": [
+    {
+      "path": "./packages/parser"
+    },
+    {
+      "path": "./packages/cli"
+    },
+    {
+      "path": "./packages/vscode-ext"
+    }
+  ]
+}

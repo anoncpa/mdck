@@ -1,0 +1,29 @@
+{
+  "name": "mdck",
+  "version": "1.0.0",
+  "private": false,
+  "description": "Monorepo for mdck (Markdown Check List)",
+  "scripts": {
+    "build": "pnpm -r --filter='./packages/*' build",
+    "lint": "pnpm -r --parallel lint",
+    "lint:fix": "pnpm -r --parallel lint:fix",
+    "test": "vitest",
+    "format": "prettier --write \"**/*.{ts,js,json,md,yml}\"",
+    "format:check": "prettier --check \"**/*.{ts,js,json,md,yml}\"",
+    "clean": "pnpm -r clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "@mdck/eslint-config-custom": "workspace:*",
+    "@types/node": "^20.19.4",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.6.2",
+    "rimraf": "^5.0.10",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3",
+    "vitest": "^1.6.1"
+  },
+  "packageManager": "pnpm@9.4.0"
+}
