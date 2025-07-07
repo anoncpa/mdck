@@ -63,7 +63,7 @@ import { execSync } from 'child_process';
 ```
 
 
-## 3. パッケージ構造
+## 3. パッケージ構造（実装当初に想定したもの。ここから変更・改善することはむしろ推奨される）
 
 ```
 @mdck/parser/
