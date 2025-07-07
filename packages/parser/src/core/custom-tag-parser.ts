@@ -4,14 +4,14 @@ import { CustomTag } from '../shared/types';
 import { parseTagAttributes } from './tag-attribute-parser';
 
 /**
- * mdck が認識するタグを 1 トークンから複数抽出するためのグローバル正規表現
- * – 開始タグ／自己終了タグのみを対象（閉じタグ </..> は除外）
+ * mdck が認識するタグを 1 トークン中から複数抽出するためのグローバル正規表現
+ * – 開始タグ／自己終了タグのみを対象（閉じタグ </...> は除外）
  */
 const TAG_PATTERN =
   /<(?!(?:\/))(TemplateInstance|Template|Tag|Result)\b[^>]*?\/?>/g;
 
 /**
- * トークン先頭行番号 (1-based) とトークン内オフセット行数から
+ * トークン先頭行 (1-based) とトークン内オフセット行数から
  * 実際の行番号 (1-based) を導出する。
  */
 function resolveLineNumber(
@@ -20,16 +20,11 @@ function resolveLineNumber(
   offsetLines: number
 ): number {
   if (token.map && token.map[0] !== null) {
-    // ブロックレベルトークン
     return token.map[0] + 1 + offsetLines;
   }
-
   if (parentToken && parentToken.map && parentToken.map[0] !== null) {
-    // インライントークン：親トークンを基準
     return parentToken.map[0] + 1 + offsetLines;
   }
-
-  // 行番号が特定できない場合
   return -1;
 }
 
@@ -40,17 +35,20 @@ function resolveLineNumber(
 export function parseCustomTags(tokens: Token[]): CustomTag[] {
   const customTags: CustomTag[] = [];
 
-  /** 深さ優先でトークンを探索し、親トークン情報を保持する */
   function traverse(tokenArray: Token[], parentToken?: Token): void {
     for (const token of tokenArray) {
       if (token.type === 'html_inline' || token.type === 'html_block') {
         const content = token.content;
-        let match: RegExpExecArray | null;
 
-        // 同一トークン内に複数タグがあればすべて抽出
+        // グローバル RegExp は lastIndex を共有するため、
+        // トークン毎に必ずリセットして取りこぼしを防止
+        TAG_PATTERN.lastIndex = 0;
+
+        let match: RegExpExecArray | null;
         while ((match = TAG_PATTERN.exec(content)) !== null) {
           const [matchedText, tagName] = match;
-          const offset = content.slice(0, match.index).split('\n').length - 1;
+          const offsetLines =
+            content.slice(0, match.index).split('\n').length - 1;
 
           customTags.push({
             tagName: tagName as
@@ -60,7 +58,7 @@ export function parseCustomTags(tokens: Token[]): CustomTag[] {
               | 'TemplateInstance',
             attributes: parseTagAttributes(matchedText),
             isSelfClosing: matchedText.trim().endsWith('/>'),
-            line: resolveLineNumber(token, parentToken, offset),
+            line: resolveLineNumber(token, parentToken, offsetLines),
           });
         }
       }
