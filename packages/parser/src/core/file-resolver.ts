@@ -1,9 +1,9 @@
 // src/core/file-resolver.ts
-import { readFile, access } from 'fs/promises';
+import { access, readFile } from 'fs/promises';
 import path from 'path';
+import { ExternalFileNotFoundError } from '../shared/errors';
 import type { Root } from '../shared/types';
 import { processor } from './processor';
-import { ExternalFileNotFoundError } from '../shared/errors';
 
 /**
  * ファイル解決結果を表現する型
@@ -127,7 +127,7 @@ export class FileResolver {
       return false;
     }
   }
-
+  // src/core/file-resolver.ts
   /**
    * ファイル内容を読み込む
    * @param filePath 読み込み対象のファイルパス
@@ -137,6 +137,18 @@ export class FileResolver {
     try {
       return await readFile(filePath, 'utf8');
     } catch (error) {
+      // Node.jsのファイルシステムエラーを適切に処理
+      if (error instanceof Error) {
+        // EACCESエラーコードをチェック
+        if ('code' in error && error.code === 'EACCES') {
+          const permissionError = new Error(
+            `EACCES: permission denied, open '${filePath}'`
+          );
+          // Node.jsエラーオブジェクトとして型アサーション
+          (permissionError as NodeJS.ErrnoException).code = 'EACCES';
+          throw permissionError;
+        }
+      }
       throw new ExternalFileNotFoundError(filePath);
     }
   }
@@ -161,9 +173,11 @@ export class FileResolver {
     }
 
     if (error instanceof Error) {
-      // ファイル権限エラーなど
+      // ファイル権限エラーのチェックを改善
+      const nodeError = error as NodeJS.ErrnoException;
       if (
-        error.message.includes('permission') ||
+        nodeError.code === 'EACCES' ||
+        error.message.includes('permission denied') ||
         error.message.includes('EACCES')
       ) {
         return {

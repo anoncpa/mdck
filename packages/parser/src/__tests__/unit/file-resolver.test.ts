@@ -1,6 +1,6 @@
 // src/__tests__/unit/file-resolver.test.ts
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { access, readFile } from 'fs/promises';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FileResolver } from '../../core/file-resolver';
 
 // fs/promisesをモック化
@@ -24,10 +24,10 @@ describe('FileResolver', () => {
   describe('resolveFile', () => {
     it('存在するファイルを正常に解決できる', async () => {
       const testContent = `
-::template{id="test"}
+:::template{id="test"}
 # Test Template
 - [ ] Test item
-::
+:::
       `;
 
       mockAccess.mockResolvedValue(undefined);
@@ -88,7 +88,11 @@ describe('FileResolver', () => {
     it('ファイル権限エラーを適切に処理する', async () => {
       // accessは成功するがreadFileで権限エラーが発生するケース
       mockAccess.mockResolvedValue(undefined);
-      const permissionError = new Error('EACCES: permission denied');
+
+      // Node.jsエラーオブジェクトとして正しく型付け
+      const permissionError = new Error(
+        'EACCES: permission denied'
+      ) as NodeJS.ErrnoException;
       permissionError.code = 'EACCES';
       mockReadFile.mockRejectedValue(permissionError);
 

@@ -14,10 +14,10 @@ describe('TemplateExpander', () => {
   describe('collectDefinitions', () => {
     it('シンプルなテンプレート定義を収集できる', () => {
       const markdown = `
-::template{id="simple"}
+:::template{id="simple"}
 # Simple Template
 - [ ] Task 1
-::
+:::
       `;
 
       const ast = processor.parse(markdown) as Root;
@@ -33,13 +33,13 @@ describe('TemplateExpander', () => {
 
     it('複数のテンプレート定義を収集できる', () => {
       const markdown = `
-::template{id="first"}
+:::template{id="first"}
 # First Template
-::
+:::
 
-::template{id="second"}
+:::template{id="second"}
 # Second Template
-::
+:::
       `;
 
       const ast = processor.parse(markdown) as Root;
@@ -52,13 +52,13 @@ describe('TemplateExpander', () => {
 
     it('重複するテンプレート定義でエラーになる', () => {
       const markdown = `
-::template{id="duplicate"}
+:::template{id="duplicate"}
 # First
-::
+:::
 
-::template{id="duplicate"}
+:::template{id="duplicate"}
 # Second
-::
+:::
       `;
 
       const ast = processor.parse(markdown) as Root;
@@ -72,10 +72,10 @@ describe('TemplateExpander', () => {
   describe('collectReferences', () => {
     it('テンプレート参照を収集できる', () => {
       const markdown = `
-::template{id="main"}
+:::template{id="main"}
 ::template{id="child1"}
 ::template{id="child2" src="./external.md"}
-::
+:::
       `;
 
       const ast = processor.parse(markdown) as Root;
@@ -96,10 +96,10 @@ describe('TemplateExpander', () => {
   describe('expandTemplate', () => {
     it('シンプルなテンプレート展開ができる', async () => {
       const markdown = `
-::template{id="main"}
+:::template{id="main"}
 # Main Template
 - [ ] Main task
-::
+:::
       `;
 
       const ast = processor.parse(markdown) as Root;
@@ -116,15 +116,15 @@ describe('TemplateExpander', () => {
 
     it('ネストしたテンプレート展開ができる', async () => {
       const markdown = `
-::template{id="parent"}
+:::template{id="parent"}
 # Parent Template
 ::template{id="child"}
-::
+:::
 
-::template{id="child"}
+:::template{id="child"}
 # Child Template
 - [ ] Child task
-::
+:::
       `;
 
       const ast = processor.parse(markdown) as Root;
@@ -141,15 +141,15 @@ describe('TemplateExpander', () => {
 
     it('循環参照を検出してエラーになる', async () => {
       const markdown = `
-::template{id="a"}
+:::template{id="a"}
 # Template A
 ::template{id="b"}
-::
+:::
 
-::template{id="b"}
+:::template{id="b"}
 # Template B
 ::template{id="a"}
-::
+:::
       `;
 
       const ast = processor.parse(markdown) as Root;
@@ -165,10 +165,10 @@ describe('TemplateExpander', () => {
 
     it('未定義テンプレート参照でエラーになる', async () => {
       const markdown = `
-::template{id="main"}
+:::template{id="main"}
 # Main Template
 ::template{id="undefined"}
-::
+:::
       `;
 
       const ast = processor.parse(markdown) as Root;
@@ -184,9 +184,9 @@ describe('TemplateExpander', () => {
 
     it('存在しないルートテンプレートでエラーになる', async () => {
       const markdown = `
-::template{id="existing"}
+:::template{id="existing"}
 # Existing Template
-::
+:::
       `;
 
       const ast = processor.parse(markdown) as Root;

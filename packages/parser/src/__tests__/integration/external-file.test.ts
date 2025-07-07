@@ -24,17 +24,17 @@ describe('External File Integration', () => {
   it('外部ファイル参照を含むテンプレート展開ができる', async () => {
     // 外部ファイルを作成
     const externalContent = `
-::template{id="external"}
+:::template{id="external"}
 # External Template
 - [ ] External task
-::
+:::
     `;
 
     const mainContent = `
-::template{id="main"}
+:::template{id="main"}
 # Main Template
 ::template{id="external" src="./external.md"}
-::
+:::
     `;
 
     const externalPath = path.join(testDir, 'external.md');
@@ -60,10 +60,10 @@ describe('External File Integration', () => {
 
   it('存在しない外部ファイルでエラーになる', async () => {
     const mainContent = `
-::template{id="main"}
+:::template{id="main"}
 # Main Template
 ::template{id="missing" src="./missing.md"}
-::
+:::
     `;
 
     const result = await parser.expandTemplate(mainContent, 'main');
@@ -77,26 +77,26 @@ describe('External File Integration', () => {
   it('ネストした外部ファイル参照を処理できる', async () => {
     // level2.md
     const level2Content = `
-::template{id="level2"}
+:::template{id="level2"}
 # Level 2 Template
 - [ ] Level 2 task
-::
+:::
     `;
 
     // level1.md
     const level1Content = `
-::template{id="level1"}
+:::template{id="level1"}
 # Level 1 Template
 ::template{id="level2" src="./level2.md"}
-::
+:::
     `;
 
     // main.md
     const mainContent = `
-::template{id="main"}
+:::template{id="main"}
 # Main Template
 ::template{id="level1" src="./level1.md"}
-::
+:::
     `;
 
     const level2Path = path.join(testDir, 'level2.md');
@@ -121,25 +121,25 @@ describe('External File Integration', () => {
   it('外部ファイル間でのテンプレートID重複を検出できる', async () => {
     // external1.md
     const external1Content = `
-::template{id="duplicate"}
+:::template{id="duplicate"}
 # External 1 Template
-::
+:::
     `;
 
     // external2.md
     const external2Content = `
-::template{id="duplicate"}
+:::template{id="duplicate"}
 # External 2 Template
-::
+:::
     `;
 
     // main.md - 修正：mainテンプレートに他のIDを含める必要がある
     const mainContent = `
-::template{id="main"}
+:::template{id="main"}
 # Main Template
 ::template{id="duplicate" src="./external1.md"}
 ::template{id="other" src="./external2.md"}
-::
+:::
     `;
 
     const external1Path = path.join(testDir, 'external1.md');
