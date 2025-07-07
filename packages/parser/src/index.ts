@@ -2,7 +2,7 @@
 import { Tokenizer } from './core/tokenizer';
 import { parseCustomTags } from './core/custom-tag-parser';
 import { ParseResult, CustomTag } from './shared/types';
-import type Token from 'markdown-it/lib/token.mjs';
+import type {Token} from './shared/types';
 
 // 公開する型を再エクスポート
 export type { ParseResult, CustomTag, Token };

@@ -1,5 +1,5 @@
 // packages/parser/src/core/custom-tag-parser.ts
-import type Token from 'markdown-it/lib/token.mjs';
+import type { Token } from '../shared/types';
 import { CustomTag } from '../shared/types';
 import { parseTagAttributes } from './tag-attribute-parser';
 

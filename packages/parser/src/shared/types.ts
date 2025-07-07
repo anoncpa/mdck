@@ -1,13 +1,14 @@
 // packages/parser/src/shared/types.ts
 import type Token from 'markdown-it/lib/token.mjs';
 
+export type { Token };
 /**
  * カスタムタグの属性を表すオブジェクト。
  * - 値ありの属性: string
  * - ブール属性: boolean (存在する場合はtrue、存在しない場合は未定義)
  * 例: { itemId: "C1", isResultRequired: true }
  */
- export type CustomTagAttributes = Record<string, string | boolean>;
+export type CustomTagAttributes = Record<string, string | boolean>;
 
 /**
  * mdckのカスタムタグを表す構造。
