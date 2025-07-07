@@ -1,20 +1,21 @@
 // packages/parser/src/core/tokenizer.ts
 import MarkdownIt from 'markdown-it';
-import type { Token } from '../shared/types';
+import type {Token} from '../shared/types';
 
 /**
  * markdown-itの薄いラッパー。
- * 文字列をトークン化する単一の責務を持つ。
+ * mdckカスタムタグを適切に処理するための設定を含む。
  */
 export class Tokenizer {
   private md: MarkdownIt;
 
   constructor() {
-    // mdckのカスタムタグをHTMLタグとして認識させるため、htmlオプションをtrueにする
+    // mdckのカスタムタグをHTMLタグとして認識させるための設定
     this.md = new MarkdownIt({
-      html: true,
-      linkify: false,
-      typographer: false,
+      html: true, // HTMLタグを有効化（必須）
+      linkify: false, // 自動リンク化を無効
+      typographer: false, // タイポグラフィ機能を無効
+      breaks: false, // 改行の自動変換を無効
     });
   }
 
@@ -28,7 +29,7 @@ export class Tokenizer {
   }
 
   /**
-   * トークン列をHTML文字列にレンダリングする（将来の機能用）。
+   * トークン列をHTML文字列にレンダリングする。
    * @param tokens - レンダリングするトークンの配列。
    * @returns レンダリングされたHTML文字列。
    */
