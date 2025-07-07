@@ -31,6 +31,7 @@ describe('parseCustomTags', () => {
       // Arrange
       const content = `
 <Template id="test" />
+- [ ] 項目 <Tag itemId="T001" />
 <Result>結果</Result>
 `;
       const tokens = tokenizer.tokenize(content);
@@ -123,6 +124,7 @@ describe('parseCustomTags', () => {
       // Arrange
       const content = `
 行1
+- [ ] 項目 <Tag itemId="test" />
 行3
 `;
       const tokens = tokenizer.tokenize(content);
@@ -168,6 +170,9 @@ describe('parseCustomTags', () => {
     test('ネストしたトークン内のタグを正しく抽出する', () => {
       // Arrange
       const content = `
+- [ ] 項目1 <Tag itemId="T001" />
+  - [ ] サブ項目 <Tag itemId="T002" />
+- [ ] 項目2 <Tag itemId="T003" />
 `;
       const tokens = tokenizer.tokenize(content);
 
