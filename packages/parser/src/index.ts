@@ -3,7 +3,8 @@
 import { processor } from './core/processor';
 import { extractMdckDirectives } from './core/directive-extractor';
 import { TemplateExpander } from './core/template-expander';
- import { FileResolver } from './core/file-resolver';
+import { FileResolver } from './core/file-resolver';
+ import { RuleEngine } from './linter/rule-engine';
 import {
   ParseResult,
   MdckDirective,
@@ -11,7 +12,10 @@ import {
   Directive,
   TemplateExpansionResult,
   TemplateDefinitions,
-   FileResolutionResult,
+  FileResolutionResult,
+   LintReport,
+   LintConfig,
+   LintContext,
 } from './shared/types';
 
 // 公開する型を再エクスポート
@@ -22,11 +26,15 @@ export type {
   Directive,
   TemplateExpansionResult,
   TemplateDefinitions,
-   FileResolutionResult,
+  FileResolutionResult,
+   LintReport,
+   LintConfig,
+   LintContext,
 };
 
- // 公開するクラスを再エクスポート
- export { FileResolver };
+// 公開するクラスを再エクスポート
+export { FileResolver };
+ export { RuleEngine };
 
 /**
  * mdck (Markdown Check List) のためのコアパーサー。
@@ -34,11 +42,13 @@ export type {
  */
 export class MdckParser {
   private readonly templateExpander: TemplateExpander;
-   private readonly fileResolver: FileResolver;
+  private readonly fileResolver: FileResolver;
+   private readonly ruleEngine: RuleEngine;
 
   constructor() {
-     this.fileResolver = new FileResolver();
-     this.templateExpander = new TemplateExpander(this.fileResolver);
+    this.fileResolver = new FileResolver();
+    this.templateExpander = new TemplateExpander(this.fileResolver);
+     this.ruleEngine = new RuleEngine();
   }
 
   /**
@@ -69,15 +79,50 @@ export class MdckParser {
     return String(result);
   }
 
+   /**
+    * Markdownコンテンツに対してLintチェックを実行する。
+    * @param content - Lint対象のMarkdown文字列
+    * @param filePath - ファイルパス（外部ファイル解決に使用）
+    * @param projectRoot - プロジェクトルートディレクトリ
+    * @returns Lint実行結果のレポート
+    */
+   public async lint(
+     content: string,
+     filePath?: string,
+     projectRoot?: string
+   ): Promise<LintReport> {
+     // 1. コンテンツを解析してASTを取得
+     const ast = processor.parse(content);
+
+     // 2. Lintコンテキストを構築
+     const context: LintContext = {
+       ast,
+       filePath,
+       projectRoot,
+     };
+
+     // 3. RuleEngineでLintを実行
+     return await this.ruleEngine.lint(context);
+   }
+
+   /**
+    * Lintエンジンの設定を更新する
+    * @param config - 新しいLint設定
+    */
+   public updateLintConfig(config: Partial<LintConfig>): void {
+     // 新しい設定でRuleEngineを再初期化
+     this.ruleEngine = new RuleEngine(config);
+   }
+
   /**
    * テンプレートを展開し、完全に解決されたASTを生成する。
-    * 外部ファイル参照も自動的に解決される。
+   * 外部ファイル参照も自動的に解決される。
    * @param content - テンプレートを含むMarkdown文字列
    * @param rootTemplateId - 展開対象のルートテンプレートID
    * @param filePath - ファイルパス（外部ファイル対応時に使用）
    * @returns テンプレート展開結果
    */
-   public async expandTemplate(
+  public async expandTemplate(
     content: string,
     rootTemplateId: string,
     filePath?: string
@@ -85,8 +130,8 @@ export class MdckParser {
     // 1. コンテンツを解析してASTを取得
     const ast = processor.parse(content);
 
-     // 2. テンプレートを展開（外部ファイル参照も自動解決）
-     return this.templateExpander.expandTemplate(rootTemplateId, ast, filePath);
+    // 2. テンプレートを展開（外部ファイル参照も自動解決）
+    return this.templateExpander.expandTemplate(rootTemplateId, ast, filePath);
   }
 
   /**
@@ -95,7 +140,7 @@ export class MdckParser {
    * @param rootTemplateId - 展開対象のルートテンプレートID
    * @returns テンプレート展開結果
    */
-   public async expandTemplateFromMultipleFiles(
+  public async expandTemplateFromMultipleFiles(
     contents: ReadonlyMap<string, string>,
     rootTemplateId: string
   ): Promise<TemplateExpansionResult> {
@@ -119,27 +164,27 @@ export class MdckParser {
     }
 
     // テンプレートを展開
-     return this.templateExpander.expandTemplate(rootTemplateId, allDefinitions);
+    return this.templateExpander.expandTemplate(rootTemplateId, allDefinitions);
   }
 
-   /**
-    * 外部ファイルを解決し、内容をASTとして取得する
-    * @param srcPath - ソースファイルパス
-    * @param basePath - 基準ファイルパス
-    * @returns ファイル解決結果
-    */
-   public async resolveExternalFile(
-     srcPath: string,
-     basePath?: string
-   ): Promise<FileResolutionResult> {
-     return this.fileResolver.resolveFile(srcPath, basePath);
-   }
+  /**
+   * 外部ファイルを解決し、内容をASTとして取得する
+   * @param srcPath - ソースファイルパス
+   * @param basePath - 基準ファイルパス
+   * @returns ファイル解決結果
+   */
+  public async resolveExternalFile(
+    srcPath: string,
+    basePath?: string
+  ): Promise<FileResolutionResult> {
+    return this.fileResolver.resolveFile(srcPath, basePath);
+  }
 
-   /**
-    * ファイルキャッシュを無効化する
-    * テスト時やファイル変更時に使用
-    */
-   public clearFileCache(): void {
-     this.fileResolver.clearCache();
-   }
+  /**
+   * ファイルキャッシュを無効化する
+   * テスト時やファイル変更時に使用
+   */
+  public clearFileCache(): void {
+    this.fileResolver.clearCache();
+  }
 }
