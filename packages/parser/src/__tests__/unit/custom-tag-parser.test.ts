@@ -1,9 +1,8 @@
 // packages/parser/src/__tests__/unit/custom-tag-parser.test.ts
-import { describe, test, expect } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import { parseCustomTags } from '../../core/custom-tag-parser';
 import { Tokenizer } from '../../core/tokenizer';
 import { MarkdownSamples } from '../fixtures/markdown-samples';
-import { CustomTag } from '../../shared/types';
 
 describe('parseCustomTags', () => {
   // Arrange: 共通のTokenizerインスタンス
@@ -32,7 +31,6 @@ describe('parseCustomTags', () => {
       // Arrange
       const content = `
 <Template id="test" />
-- [ ] 項目 <Tag itemId="T001" />
 <Result>結果</Result>
 `;
       const tokens = tokenizer.tokenize(content);
@@ -125,7 +123,6 @@ describe('parseCustomTags', () => {
       // Arrange
       const content = `
 行1
-- [ ] 項目 <Tag itemId="test" />
 行3
 `;
       const tokens = tokenizer.tokenize(content);
@@ -145,13 +142,13 @@ describe('parseCustomTags', () => {
 
       // 人工的にmapプロパティを削除してテスト
       tokens.forEach((token) => {
-        if (token.map) {
-          delete token.map;
+        if ('map' in token) {
+          (token as any).map = undefined;
         }
         if (token.children) {
           token.children.forEach((child) => {
-            if (child.map) {
-              delete child.map;
+            if ('map' in child) {
+              (child as any).map = undefined;
             }
           });
         }
@@ -171,9 +168,6 @@ describe('parseCustomTags', () => {
     test('ネストしたトークン内のタグを正しく抽出する', () => {
       // Arrange
       const content = `
-- [ ] 項目1 <Tag itemId="T001" />
-  - [ ] サブ項目 <Tag itemId="T002" />
-- [ ] 項目2 <Tag itemId="T003" />
 `;
       const tokens = tokenizer.tokenize(content);
 

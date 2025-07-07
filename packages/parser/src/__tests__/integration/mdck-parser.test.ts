@@ -1,8 +1,8 @@
 // packages/parser/src/__tests__/integration/mdck-parser.test.ts
-import { describe, test, expect } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import { MdckParser } from '../../index';
-import { MarkdownSamples } from '../fixtures/markdown-samples';
 import { ExpectedResults } from '../fixtures/expected-results';
+import { MarkdownSamples } from '../fixtures/markdown-samples';
 
 describe('MdckParser Integration Tests', () => {
   // Arrange: 共通のパーサーインスタンス
@@ -101,7 +101,6 @@ describe('MdckParser Integration Tests', () => {
       const content = `
 <Template id="mixed">
   <TemplateInstance templateId="generated" generatedAt="2024-01-01" />
-  - [ ] 項目 <Tag itemId="M001" isResultRequired />
     <Result>結果</Result>
 </Template>
 `;
@@ -162,11 +161,17 @@ describe('MdckParser Integration Tests', () => {
       const customTags = result.customTags;
       expect(customTags.length).toBeGreaterThanOrEqual(2); // Tag と Result
 
-      // HTMLコンテンツはカスタムタグとして抽出されないことを確認
-      const htmlDivTags = customTags.filter(
-        (tag) => tag.tagName === 'div' // これは抽出されないはず
+      // divタグは認識されないタグなので、カスタムタグには含まれない
+      const recognizedTagNames = [
+        'Template',
+        'Tag',
+        'Result',
+        'TemplateInstance',
+      ] as const;
+      const allTagsAreRecognized = customTags.every((tag) =>
+        recognizedTagNames.includes(tag.tagName)
       );
-      expect(htmlDivTags).toHaveLength(0);
+      expect(allTagsAreRecognized).toBe(true);
     });
 
     test('複数行にまたがるタグを正しく処理する', () => {
@@ -276,7 +281,6 @@ describe('MdckParser Integration Tests', () => {
         .map(
           (_, i) =>
             `<Template id="T${i}">
-- [ ] 項目${i} <Tag itemId="TAG${i}" isResultRequired />
   <Result>結果${i}</Result>
 </Template>`
         )

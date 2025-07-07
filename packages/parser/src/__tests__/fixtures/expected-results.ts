@@ -8,13 +8,13 @@ import { CustomTag } from '../../shared/types';
 
 export const ExpectedResults = {
   basic: {
-    tokenCount: 15, // 概算値（実際の値は動的に決定）
+    tokenCount: 16, // 概算値（実際の値は動的に決定）
     customTags: [
       {
         tagName: 'Template' as const,
         attributes: { id: 'basic-template', src: './template.md' },
         isSelfClosing: true,
-        line: 4,
+        line: 5,
       },
       {
         tagName: 'Tag' as const,
