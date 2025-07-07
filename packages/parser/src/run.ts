@@ -36,8 +36,13 @@ function main() {
 
   // 解析結果を整形してコンソールに出力
   console.log('--- Parse Result ---');
-  // JSON.stringifyの第3引数に2を指定すると、人間が読みやすいようにインデントされる
-  console.log(JSON.stringify(result, null, 2));
+  console.log('Tokens count:', result.tokens.length);
+  console.log('Custom tags:');
+  result.customTags.forEach((tag, index) => {
+    console.log(`  ${index + 1}. ${tag.tagName} (line: ${tag.line})`);
+    console.log(`     Attributes:`, tag.attributes);
+    console.log(`     Self-closing: ${tag.isSelfClosing}`);
+  });
 
   console.log('--- MdckParser Execution End ---');
 }

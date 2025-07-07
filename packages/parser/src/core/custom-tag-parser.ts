@@ -1,18 +1,18 @@
 // packages/parser/src/core/custom-tag-parser.ts
 import type Token from 'markdown-it/lib/token.mjs';
- import { CustomTag } from '../shared/types';
- import { parseAttributes } from '../shared/utils';
+import { parseTagAttributes } from './attribute-parser';
+import { CustomTag } from '../shared/types';
 
- // mdckが関心を持つカスタムタグのリスト
- const RECOGNIZED_TAGS = /<(Template|Tag|Result|TemplateInstance)\b/i;
+// mdckが関心を持つカスタムタグのリスト
+const RECOGNIZED_TAGS = /<(Template|Tag|Result|TemplateInstance)\b/i;
 
- /**
-  * markdown-itのトークン列を走査し、mdckのカスタムタグを抽出する。
-  * @param tokens - Tokenizerによって生成されたトークンの配列。
-  * @returns 抽出されたCustomTagオブジェクトの配列。
-  */
- export function parseCustomTags(tokens: Token[]): CustomTag[] {
-   const customTags: CustomTag[] = [];
+/**
+ * markdown-itのトークン列を走査し、mdckのカスタムタグを抽出する。
+ * @param tokens - Tokenizerによって生成されたトークンの配列。
+ * @returns 抽出されたCustomTagオブジェクトの配列。
+ */
+export function parseCustomTags(tokens: Token[]): CustomTag[] {
+  const customTags: CustomTag[] = [];
 
   // トークンツリーを再帰的に探索する内部関数
   function findTagsRecursively(tokenArray: Token[]) {
@@ -41,20 +41,20 @@ import type Token from 'markdown-it/lib/token.mjs';
 
           customTags.push({
             tagName,
-            attributes: parseAttributes(token.content),
+            attributes: parseTagAttributes(token.content),
             isSelfClosing: token.content.trim().endsWith('/>'),
             line, // ネストされたトークンでは行番号が取得できない場合がある
           });
-         }
-       }
+        }
+      }
 
       // 子トークンが存在する場合、再帰的に探索する
       if (token.children) {
         findTagsRecursively(token.children);
       }
-     }
-   }
+    }
+  }
 
   findTagsRecursively(tokens);
-   return customTags;
- }
+  return customTags;
+}
