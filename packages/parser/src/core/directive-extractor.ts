@@ -1,7 +1,7 @@
 // packages/parser/src/core/directive-extractor.ts
-import { visit } from 'unist-util-visit';
 import { Root } from 'mdast';
-import { MdckDirective, MdckDirectiveName, Directive } from '../shared/types';
+import { visit } from 'unist-util-visit';
+import { Directive, MdckDirective, MdckDirectiveName } from '../shared/types';
 
 /**
  * 指定されたノードがmdckが対象とするディレクティブ名を持つか判定する。
@@ -32,6 +32,52 @@ function filterAttributes(
 }
 
 /**
+ * containerDirectiveの子ノードからテキスト内容を抽出する。
+ * 段落、テキスト、コードブロックなどのコンテンツを文字列として結合する。
+ * @param children - containerDirectiveの子ノード配列
+ * @returns 抽出されたテキスト内容
+ */
+function extractContentFromChildren(children: any[]): string {
+  const contentParts: string[] = [];
+
+  function extractText(node: any): void {
+    if (!node) return;
+
+    switch (node.type) {
+      case 'text':
+        contentParts.push(node.value);
+        break;
+      case 'paragraph':
+      case 'heading':
+      case 'blockquote':
+      case 'listItem':
+        if (node.children) {
+          node.children.forEach(extractText);
+        }
+        break;
+      case 'code':
+        contentParts.push(node.value);
+        break;
+      case 'emphasis':
+      case 'strong':
+      case 'link':
+        if (node.children) {
+          node.children.forEach(extractText);
+        }
+        break;
+      default:
+        // その他のノード型では、childrenがあれば再帰的に処理
+        if (node.children) {
+          node.children.forEach(extractText);
+        }
+    }
+  }
+
+  children.forEach(extractText);
+  return contentParts.join('').trim();
+}
+
+/**
  * remarkが生成したAST (mdast) を走査し、mdckに関連するディレクティブ情報を抽出する。
  * @param ast - 解析対象のAST (Rootノード)
  * @returns 抽出されたmdckディレクティブの配列
@@ -41,16 +87,22 @@ export function extractMdckDirectives(ast: Root): MdckDirective[] {
 
   // visitユーティリティを使ってASTツリーを安全に走査
   visit(ast, (node) => {
-    // ディレクティブ型のノードのみを対象とする
+    // 全てのディレクティブ型をチェック（textDirectiveを含む）
     if (
       node.type === 'containerDirective' ||
       node.type === 'leafDirective' ||
-      node.type === 'textDirective'
+      node.type === 'textDirective' // インライン形式を追加
     ) {
       const directive = node as Directive;
 
       // 'template', 'tag', 'result' のいずれかの名前を持つディレクティブのみを対象とする
       if (isMdckDirectiveName(directive.name)) {
+        // containerDirectiveの場合は子ノードからコンテンツを抽出
+        const content =
+          directive.type === 'containerDirective' && 'children' in directive
+            ? extractContentFromChildren(directive.children)
+            : '';
+
         directives.push({
           name: directive.name,
           type: directive.type,
@@ -58,6 +110,8 @@ export function extractMdckDirectives(ast: Root): MdckDirective[] {
           attributes: filterAttributes(directive.attributes),
           // 子ノードはcontainerDirectiveの場合のみ存在
           children: 'children' in directive ? directive.children : [],
+          // 抽出されたテキストコンテンツ
+          content,
           // 位置情報から開始行を取得 (1-based)。なければ-1
           line: directive.position?.start.line ?? -1,
         });

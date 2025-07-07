@@ -5,6 +5,7 @@ import { MdckParser } from './index';
  * パーサーの動作確認に使用するマークダウンのサンプルテキスト。
  * remark-directiveの構文に準拠した適切な記法を使用。
  */
+
 const sampleMarkdown = `# 総合ビルド・デプロイチェックリスト
 
 ## 事前準備
@@ -14,17 +15,17 @@ const sampleMarkdown = `# 総合ビルド・デプロイチェックリスト
 - [ ] 仕様書が最新か確認する :tag{id="C1"}
 - [x] 関係者にレビュー依頼を送付 :tag{id="C2" mandatory="true"}
 
-::result
+:::result{}
 Slack で依頼済み @2025-07-06
-::
+:::
 
 ## 最終確認
 
 - [ ] プロダクション環境の確認 :tag{id="P1" mandatory="true"}
 
-::result
+:::result{}
 プロダクション環境正常、デプロイ可能
-::
+:::
 `;
 
 /**
@@ -48,6 +49,9 @@ function main() {
       `  ${index + 1}. ::${directive.name} (type: ${directive.type}, line: ${directive.line})`
     );
     console.log(`     Attributes:`, directive.attributes);
+    if (directive.content) {
+      console.log(`     Content: "${directive.content}"`);
+    }
     if (directive.children.length > 0) {
       console.log(`     Has children: ${directive.children.length}`);
     }

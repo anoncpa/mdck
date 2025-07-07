@@ -7,8 +7,13 @@ import type {
 } from 'mdast-util-directive';
 
 // remark と mdast の主要な型を再エクスポート
-export type { Root, RootContent };
-export type { ContainerDirective, LeafDirective, TextDirective };
+export type {
+  ContainerDirective,
+  LeafDirective,
+  Root,
+  RootContent,
+  TextDirective,
+};
 
 // 統合的なディレクティブ型
 export type Directive = ContainerDirective | LeafDirective | TextDirective;
@@ -24,7 +29,6 @@ export type MdckDirectiveName = 'template' | 'tag' | 'result';
  * ASTの 'Directive' ノードから必要な情報を抽出して生成される。
  */
 export interface MdckDirective {
-
   name: MdckDirectiveName;
 
   /**
@@ -47,6 +51,13 @@ export interface MdckDirective {
   children: RootContent[];
 
   /**
+   * containerDirectiveの場合のテキストコンテンツ。
+   * 子ノードからテキスト部分のみを抽出した文字列。
+   * leafDirectiveやtextDirectiveの場合は空文字列。
+   */
+  content: string;
+
+  /**
    * このディレクティブが出現したソースコードの開始行番号 (1-based)
    */
   line: number;
@@ -66,57 +77,6 @@ export interface ParseResult {
   directives: MdckDirective[];
 }
 
-/**
- * テンプレート定義の詳細情報
- */
-export interface TemplateDefinition {
-  id: string;
-  templateId?: string;
-  ast: Root;
-  filePath?: string;
-  startLine: number;
-  endLine: number;
-  dependencies: string[]; // 参照している他のテンプレート
-}
-
-/**
- * ファイルメタデータ
- */
-export interface FileMetadata {
-  templateIds: string[];
-  itemIds: string[];
-  externalRefs: Record<string, string>;
-  templateDefinitions: Record<string, TemplateDefinition>;
-  dependencies: string[];
-  filePath?: string;
-  lastModified: number;
-}
-
-/**
- * キャッシュデータ
- */
-export interface CacheData {
-  templateIds: string[];
-  itemIds: string[];
-  externalRefs: Record<string, string>;
-  templateDefinitions: Record<string, TemplateDefinition>;
-  fileDependencies: Record<string, string[]>;
-  lastUpdated: number;
-  metadata: {
-    fileCount: number;
-    schemaVersion: string;
-  };
-}
-
-/**
- * 設定情報
- */
-export interface MdckConfig {
-  rules: Record<string, 'error' | 'warn' | 'info' | 'off'>;
-  settings: {
-    itemIdFormat: string;
-    maxResultLength: number;
-    allowCustomItems: boolean;
-    autoSave: boolean;
-  };
-}
+// 将来の拡張用のプレースホルダー
+export interface MdckConfig {}
+export interface LintResult {}
