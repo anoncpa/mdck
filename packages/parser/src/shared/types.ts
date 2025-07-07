@@ -24,6 +24,7 @@ export type MdckDirectiveName = 'template' | 'tag' | 'result';
  * ASTの 'Directive' ノードから必要な情報を抽出して生成される。
  */
 export interface MdckDirective {
+
   name: MdckDirectiveName;
 
   /**
@@ -65,6 +66,57 @@ export interface ParseResult {
   directives: MdckDirective[];
 }
 
-// 将来の拡張用のプレースホルダー
-export interface MdckConfig {}
-export interface LintResult {}
+/**
+ * テンプレート定義の詳細情報
+ */
+export interface TemplateDefinition {
+  id: string;
+  templateId?: string;
+  ast: Root;
+  filePath?: string;
+  startLine: number;
+  endLine: number;
+  dependencies: string[]; // 参照している他のテンプレート
+}
+
+/**
+ * ファイルメタデータ
+ */
+export interface FileMetadata {
+  templateIds: string[];
+  itemIds: string[];
+  externalRefs: Record<string, string>;
+  templateDefinitions: Record<string, TemplateDefinition>;
+  dependencies: string[];
+  filePath?: string;
+  lastModified: number;
+}
+
+/**
+ * キャッシュデータ
+ */
+export interface CacheData {
+  templateIds: string[];
+  itemIds: string[];
+  externalRefs: Record<string, string>;
+  templateDefinitions: Record<string, TemplateDefinition>;
+  fileDependencies: Record<string, string[]>;
+  lastUpdated: number;
+  metadata: {
+    fileCount: number;
+    schemaVersion: string;
+  };
+}
+
+/**
+ * 設定情報
+ */
+export interface MdckConfig {
+  rules: Record<string, 'error' | 'warn' | 'info' | 'off'>;
+  settings: {
+    itemIdFormat: string;
+    maxResultLength: number;
+    allowCustomItems: boolean;
+    autoSave: boolean;
+  };
+}
