@@ -104,3 +104,13 @@ export interface LintReport {
   /** 実行時間（ミリ秒） */
   readonly duration: number;
 }
+
+export interface LintEngineConfig {
+  readonly rules: ReadonlyMap<LintRuleId, LintRuleConfig>;
+}
+
+// RuleEngineクラスの設定更新をサポート
+export interface ConfigurableRuleEngine {
+  updateConfig(config: Partial<LintConfig>): void;
+  getCurrentConfig(): LintConfig;
+}

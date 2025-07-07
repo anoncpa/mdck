@@ -1,16 +1,16 @@
 // src/linter/rule-engine.ts
 import type {
-  LintRule,
+  LintConfig,
   LintContext,
   LintReport,
-  LintConfig,
-  LintRuleId,
   LintResult,
+  LintRule,
+  LintRuleId,
 } from '../shared/lint-types';
 import {
+  CircularReferenceRule,
   DuplicateTemplateIdRule,
   UndefinedTemplateReferenceRule,
-  CircularReferenceRule,
 } from './rules/template-rules';
 
 /**
@@ -19,17 +19,20 @@ import {
  */
 export class RuleEngine {
   private readonly rules: ReadonlyMap<LintRuleId, LintRule>;
-  private readonly config: LintConfig;
+  private config: LintConfig;
 
   constructor(config?: Partial<LintConfig>) {
-    // デフォルトルールの登録
-    this.rules = new Map([
-      ['M002', new DuplicateTemplateIdRule()],
-      ['M003', new UndefinedTemplateReferenceRule()],
-      ['M004', new CircularReferenceRule()],
-    ]);
+    // Map作成を分離し、型安全性を確保
+    const ruleMap = new Map<LintRuleId, LintRule>();
+    ruleMap.set('M002', new DuplicateTemplateIdRule());
+    ruleMap.set('M003', new UndefinedTemplateReferenceRule());
+    ruleMap.set('M004', new CircularReferenceRule());
 
-    // デフォルト設定の構築
+    this.rules = ruleMap;
+    this.config = this.buildConfig(config);
+  }
+
+  public updateConfig(config: Partial<LintConfig>): void {
     this.config = this.buildConfig(config);
   }
 

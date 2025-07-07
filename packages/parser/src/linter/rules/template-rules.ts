@@ -1,10 +1,9 @@
 // src/linter/rules/template-rules.ts
 import { visit } from 'unist-util-visit';
-import type { Root } from 'mdast';
-import type { Directive } from '../../shared/types';
-import type { LintContext, LintResult } from '../../shared/lint-types';
-import { TemplateExpander } from '../../core/template-expander';
 import { FileResolver } from '../../core/file-resolver';
+import { TemplateExpander } from '../../core/template-expander';
+import type { LintContext, LintResult } from '../../shared/lint-types';
+import type { Directive } from '../../shared/types';
 import { BaseLintRule } from './base-rule';
 
 /**
@@ -23,12 +22,12 @@ export class DuplicateTemplateIdRule extends BaseLintRule {
       { line: number; filePath?: string }
     >();
 
-    // ASTを走査してテンプレート定義を収集
     visit(context.ast, (node) => {
       if (node.type === 'containerDirective') {
         const directive = node as Directive;
 
-        if (directive.name === 'template' && directive.attributes) {
+        if (directive.name === 'template') {
+          // 修正: 型安全な抽出メソッドを使用
           const templateId = this.extractTemplateId(directive);
 
           if (templateId) {
@@ -36,7 +35,6 @@ export class DuplicateTemplateIdRule extends BaseLintRule {
             const existingDefinition = templateDefinitions.get(templateId);
 
             if (existingDefinition) {
-              // 重複を発見
               results.push(
                 this.createResult(
                   `Duplicate template definition: "${templateId}"${
@@ -57,7 +55,6 @@ export class DuplicateTemplateIdRule extends BaseLintRule {
                 )
               );
             } else {
-              // 初回定義を記録
               templateDefinitions.set(templateId, {
                 line,
                 filePath: context.filePath,

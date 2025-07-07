@@ -111,7 +111,7 @@ export class MdckParser {
     */
    public updateLintConfig(config: Partial<LintConfig>): void {
      // 新しい設定でRuleEngineを再初期化
-     this.ruleEngine = new RuleEngine(config);
+     this.ruleEngine.updateConfig(config);
    }
 
   /**

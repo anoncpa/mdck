@@ -1,11 +1,12 @@
 // src/linter/rules/base-rule.ts
 import type {
+  LintContext,
+  LintResult,
   LintRule,
   LintRuleId,
   LintSeverity,
-  LintContext,
-  LintResult,
 } from '../../shared/lint-types';
+import { Directive } from '../../shared/types';
 
 /**
  * 全Lintルールの基底クラス
@@ -47,15 +48,35 @@ export abstract class BaseLintRule implements LintRule {
 
   /**
    * ディレクティブからテンプレートIDを安全に抽出
-   * 既存のディレクティブ処理ロジックと統一性を保つ
+   * null/undefinedを適切に処理
    */
-  protected extractTemplateId(directive: {
-    attributes?: Record<string, string> | null;
-  }): string | null {
+  protected extractTemplateId(directive: Directive): string | null {
     if (!directive.attributes) return null;
 
-    // id属性と#id属性の両方をサポート（既存コードとの整合性）
-    return directive.attributes.id || directive.attributes['#id'] || null;
+    // 型安全な属性値取得
+    const idValue = directive.attributes.id || directive.attributes['#id'];
+
+    // null/undefinedチェック
+    if (typeof idValue === 'string') {
+      return idValue;
+    }
+
+    return null;
+  }
+
+  /**
+   * 属性を安全にRecord<string, string>に変換
+   */
+  protected safeGetAttributes(directive: Directive): Record<string, string> {
+    if (!directive.attributes) return {};
+
+    const safeAttributes: Record<string, string> = {};
+    for (const [key, value] of Object.entries(directive.attributes)) {
+      if (typeof value === 'string') {
+        safeAttributes[key] = value;
+      }
+    }
+    return safeAttributes;
   }
 
   /**
