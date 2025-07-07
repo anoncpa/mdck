@@ -3,30 +3,33 @@ import { MdckParser } from './index';
 
 /**
  * パーサーの動作確認に使用するマークダウンのサンプルテキスト。
- * 複数のカスタムタグを含んでいます。
+ * remark-directiveの構文 (`::name{key=value}`) を使用。
  */
 const sampleMarkdown = `
 # 総合ビルド・デプロイチェックリスト
 
 ## 事前準備
 
-<Template id="child1" src="./child1.md" />
+::template{#id=child1 src=./child1.md}
 
-- [ ] 仕様書が最新か確認する <Tag itemId="C1" />
-- [x] 関係者にレビュー依頼を送付 <Tag itemId="C2" isResultRequired />
-      <Result>Slack で依頼済み @2025-07-06</Result>
+- [ ] 仕様書が最新か確認する ::tag{#id=C1}
+- [x] 関係者にレビュー依頼を送付 ::tag{#id=C2 mandatory=true}
+
+::result
+Slack で依頼済み @2025-07-06
+::
 
 ## 最終確認
 
-- [ ] プロダクション環境の確認 <Tag itemId="P1" isResultRequired />
-      <Result></Result>
+- [ ] プロダクション環境の確認 ::tag{#id=P1 mandatory=true}
+      ::result{}::
 `;
 
 /**
  * パーサーをインスタンス化し、サンプルテキストを解析して結果を出力するメイン関数。
  */
 function main() {
-  console.log('--- MdckParser Execution Start ---');
+  console.log('--- MdckParser (remark-based) Execution Start ---');
 
   // パーサーをインスタンス化
   const parser = new MdckParser();
@@ -36,26 +39,27 @@ function main() {
 
   // 解析結果を整形してコンソールに出力
   console.log('--- Parse Result ---');
-  console.log('Tokens count:', result.tokens.length);
-  console.log('Custom tags:');
-  result.customTags.forEach((tag, index) => {
-    console.log(`  ${index + 1}. ${tag.tagName} (line: ${tag.line})`);
-    console.log(`     Attributes:`, tag.attributes);
-    console.log(`     Self-closing: ${tag.isSelfClosing}`);
+  console.log('AST generated successfully.');
+  console.log('Mdck directives found:', result.directives.length);
+  result.directives.forEach((directive, index) => {
+    console.log(
+      `  ${index + 1}. ::${directive.name} (type: ${directive.type}, line: ${directive.line})`
+    );
+    console.log(`     Attributes:`, directive.attributes);
+    if (directive.children.length > 0) {
+      console.log(`     Has children: ${directive.children.length}`);
+    }
   });
 
-  // 行番号解決の改善を確認
-  console.log('--- Line Number Resolution Test ---');
-  const tagsWithValidLines = result.customTags.filter((tag) => tag.line > 0);
-  const tagsWithInvalidLines = result.customTags.filter(
-    (tag) => tag.line === -1
-  );
-  console.log(`Tags with valid line numbers: ${tagsWithValidLines.length}`);
+  // ASTの文字列化をテスト
+  console.log('\n--- Stringify Test ---');
+  const stringified = parser.stringify(result.ast);
   console.log(
-    `Tags with unresolved line numbers: ${tagsWithInvalidLines.length}`
+    'Stringified output is similar to original input:',
+    stringified.trim().length > 0
   );
 
-  console.log('--- MdckParser Execution End ---');
+  console.log('\n--- MdckParser Execution End ---');
 }
 
 // スクリプトとして実行された場合にmain関数を呼び出す

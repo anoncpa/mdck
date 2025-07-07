@@ -1,34 +1,53 @@
 // packages/parser/src/shared/types.ts
-import type Token from 'markdown-it/lib/token.mjs';
+import type { Root, Content } from 'mdast';
 
-export type { Token };
+// remark と mdast の主要な型を再エクスポート
+export type { Root, Content };
+import type {
+  ContainerDirective,
+  LeafDirective,
+  TextDirective,
+} from 'mdast-util-directive';
+
+// Create a union type for convenience:
+export type Directive = ContainerDirective | LeafDirective | TextDirective;
 /**
- * カスタムタグの属性を表すオブジェクト。
- * - 値ありの属性: string
- * - ブール属性: boolean (存在する場合はtrue、存在しない場合は未定義)
- * 例: { itemId: "C1", isResultRequired: true }
+ * mdckが扱うディレクティブの種類。
+ * remark-directiveの 'name' プロパティに対応する。
  */
-export type CustomTagAttributes = Record<string, string | boolean>;
+export type MdckDirectiveName = 'template' | 'tag' | 'result';
 
 /**
- * mdckのカスタムタグを表す構造。
- * 例: <Tag itemId="C1" />
+ * mdckのディレクティブ情報を表す構造。
+ * ASTの 'Directive' ノードから必要な情報を抽出して生成される。
  */
-export interface CustomTag {
+export interface MdckDirective {
   /**
-   * タグ名 (例: "Template", "Tag", "Result")
+   * ディレクティブ名 (例: "template", "tag", "result")
    */
-  tagName: 'Template' | 'Tag' | 'Result' | 'TemplateInstance';
+  name: MdckDirectiveName;
+
   /**
-   * タグが持つ属性
+   * ディレクティブの種類
+   * - containerDirective: ::template{} ... ::
+   * - leafDirective: ::template{} or ::tag{}
+   * - textDirective: :template[text]
    */
-  attributes: CustomTagAttributes;
+  type: 'containerDirective' | 'leafDirective' | 'textDirective';
+
   /**
-   * 自己終了タグかどうか (例: <Tag />)
+   * ディレクティブが持つ属性
    */
-  isSelfClosing: boolean;
+  attributes: Record<string, string>;
+
   /**
-   * このタグが出現したソースコードの開始行番号 (1-based)
+   * ディレクティブのコンテンツ(子ノード)
+   * containerDirectiveの場合にのみ子要素を持つ。
+   */
+  children: Content[];
+
+  /**
+   * このディレクティブが出現したソースコードの開始行番号 (1-based)
    */
   line: number;
 }
@@ -38,13 +57,13 @@ export interface CustomTag {
  */
 export interface ParseResult {
   /**
-   * markdown-itによって生成された生のトークン列。
+   * remarkによって生成されたMarkdownのAST (Abstract Syntax Tree)
    */
-  tokens: Token[];
+  ast: Root;
   /**
-   * ドキュメント内から抽出されたmdckカスタムタグのリスト。
+   * ドキュメント内から抽出されたmdckディレクティブのリスト。
    */
-  customTags: CustomTag[];
+  directives: MdckDirective[];
 }
 
 // 将来の拡張用のプレースホルダー
