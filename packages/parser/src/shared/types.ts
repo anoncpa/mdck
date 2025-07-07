@@ -47,6 +47,38 @@ export interface ParseResult {
   customTags: CustomTag[];
 }
 
+/**
+ * テンプレート定義を表す型。
+ * 単一ファイル内のテンプレート定義から抽出された情報を格納する。
+ */
+export interface TemplateDefinition {
+  /**
+   * テンプレートID（例: "server-maintenance"）
+   */
+  readonly id: string;
+  /**
+   * このテンプレート定義が含まれるトークン列
+   */
+  readonly tokens: readonly Token[];
+  /**
+   * 定義元ファイルパス（外部ファイルの場合）
+   */
+  readonly filePath?: string;
+  /**
+   * テンプレート定義の開始行番号（1-based）
+   */
+  readonly startLine: number;
+  /**
+   * テンプレート定義の終了行番号（1-based）
+   */
+  readonly endLine: number;
+  /**
+   * このテンプレートが参照している他のテンプレートIDのリスト
+   * 循環参照検出に使用される
+   */
+  readonly dependencies: readonly string[];
+}
+
 // 将来の拡張用のプレースホルダー
 export interface MdckConfig {}
 export interface LintResult {}
