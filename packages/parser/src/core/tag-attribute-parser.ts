@@ -26,6 +26,11 @@ export function parseTagAttributes(tagContent: string): CustomTagAttributes {
     return attributes;
   }
 
+ // 不正な属性形式を早期に検出（閉じられていない引用符など）
+ if (hasInvalidAttributeFormat(attributeSection)) {
+   return attributes;
+ }
+
   // 値ありの属性を抽出: name="value" または name='value'
   const valueAttributes = extractValueAttributes(attributeSection);
   Object.assign(attributes, valueAttributes);
@@ -50,6 +55,20 @@ function extractAttributeSection(tagContent: string): string | null {
   return match ? match[1] : null;
 }
 
+ /**
+  * 不正な属性形式を検出する。
+  * 閉じられていない引用符、不正な等号の使用などを検出。
+  */
+ function hasInvalidAttributeFormat(attributeSection: string): boolean {
+   // 閉じられていない引用符を検出
+   const unclosedQuotes = /=\s*["'][^"'>]*$/.test(attributeSection);
+
+   // 値なしの等号を検出（例: itemId= ）
+   const emptyEquals = /[a-zA-Z][a-zA-Z0-9]*\s*=\s*(?!["\'])/.test(attributeSection);
+
+   return unclosedQuotes || emptyEquals;
+ }
+
 /**
  * 値ありの属性を抽出する。
  * 例: 'itemId="C1" src="./file.md"' -> { itemId: "C1", src: "./file.md" }
@@ -59,13 +78,20 @@ function extractValueAttributes(
 ): Record<string, string> {
   const attributes: Record<string, string> = {};
 
-  // name="value" または name='value' 形式の属性を抽出
-  const valuePattern = /([a-zA-Z][a-zA-Z0-9]*)\s*=\s*["']([^"']*)["']/g;
+ // name="value" または name='value' 形式の属性を抽出
+ // より厳密な正規表現で、適切に閉じられた引用符のみをマッチ
+ const valuePattern = /([a-zA-Z][a-zA-Z0-9]*)\s*=\s*"([^"]*)"|([a-zA-Z][a-zA-Z0-9]*)\s*=\s*'([^']*)'/g;
   let match;
 
   while ((match = valuePattern.exec(attributeSection)) !== null) {
-    const [, name, value] = match;
-    attributes[name] = value;
+   // ダブルクォートとシングルクォートの両方に対応
+   if (match[1] && match[2] !== undefined) {
+     // ダブルクォート形式: name="value"
+     attributes[match[1]] = match[2];
+   } else if (match[3] && match[4] !== undefined) {
+     // シングルクォート形式: name='value'
+     attributes[match[3]] = match[4];
+   }
   }
 
   return attributes;
@@ -85,8 +111,11 @@ function extractBooleanAttributes(
   // 値ありの属性を除去した文字列を作成
   let cleanSection = attributeSection;
   for (const name of excludeNames) {
-    const pattern = new RegExp(`${name}\\s*=\\s*["'][^"']*["']`, 'g');
-    cleanSection = cleanSection.replace(pattern, '');
+   // ダブルクォートとシングルクォートの両方を考慮した除去
+   const doubleQuotePattern = new RegExp(`${name}\\s*=\\s*"[^"]*"`, 'g');
+   const singleQuotePattern = new RegExp(`${name}\\s*=\\s*'[^']*'`, 'g');
+   cleanSection = cleanSection.replace(doubleQuotePattern, '');
+   cleanSection = cleanSection.replace(singleQuotePattern, '');
   }
 
   // 残った単語（英数字で始まる識別子）をブール属性として抽出
