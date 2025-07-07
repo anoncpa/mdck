@@ -95,13 +95,11 @@ describe('MdckParser Integration Tests', () => {
 
     test('異なるタグタイプが混在するコンテンツを処理する', () => {
       // Arrange
-      const content = `
-<Template id="mixed">
+      const content = `<Template id="mixed">
   <TemplateInstance templateId="generated" generatedAt="2024-01-01" />
   - [ ] 項目 <Tag itemId="M001" isResultRequired />
     <Result>結果</Result>
-</Template>
-`;
+</Template>`;
 
       // Act
       const result = parser.parse(content);

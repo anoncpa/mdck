@@ -29,11 +29,11 @@ describe('parseCustomTags', () => {
 
     test('複数の異なるタグを正しく抽出する', () => {
       // Arrange
-      const content = `
-<Template id="test" />
+      const content = `<Template id="test" />
+
 - [ ] 項目 <Tag itemId="T001" />
-<Result>結果</Result>
-`;
+
+<Result>結果</Result>`;
       const tokens = tokenizer.tokenize(content);
 
       // Act
@@ -106,27 +106,27 @@ describe('parseCustomTags', () => {
   describe('行番号解決', () => {
     test('ブロックレベルタグの行番号を正確に取得する', () => {
       // Arrange
-      const content = `
-行1
+      const content = `行1
+
 <Template id="test" />
-行3
-`;
+
+行4`;
       const tokens = tokenizer.tokenize(content);
 
       // Act
       const customTags = parseCustomTags(tokens);
 
       // Assert
-      expect(customTags[0].line).toBe(3); // <Template>がある行
+      expect(customTags[0].line).toBe(3); // <Template>がある行（空行も含めて3行目）
     });
 
     test('インラインタグの行番号を親から推定する', () => {
       // Arrange
-      const content = `
-行1
+      const content = `行1
+
 - [ ] 項目 <Tag itemId="test" />
-行3
-`;
+
+行4`;
       const tokens = tokenizer.tokenize(content);
 
       // Act
@@ -138,7 +138,6 @@ describe('parseCustomTags', () => {
 
     test('行番号が取得できない場合は-1を返す', () => {
       // 特定のトークン構造で行番号情報がない場合のテスト
-      // 実際のケースは限定的だが、安全性のためのテスト
       const content = '<Tag itemId="test" />';
       const tokens = tokenizer.tokenize(content);
 
