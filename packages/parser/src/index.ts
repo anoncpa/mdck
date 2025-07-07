@@ -1,10 +1,38 @@
 // packages/parser/src/index.ts
-// このファイルは@mdck/parserパッケージの主要な機能をエクスポートするエントリーポイントです。
-// 現時点ではプレースホルダとして機能しますが、将来的にはMdckParserクラスなどが実装されます。
-console.log('This is @mdck/parser');
+import { Tokenizer } from './core/tokenizer';
+import { parseCustomTags } from './core/custom-tag-parser';
+import { ParseResult, CustomTag } from './shared/types';
+import type Token from 'markdown-it/lib/token.mjs';
 
-export function parse(text: string): Record<string, unknown> {
-  // ダミーの実装：将来的には完全なパーサーロジックが入ります。
-  if (!text) return {};
-  return { parsed: true };
+// 公開する型を再エクスポート
+export type { ParseResult, CustomTag, Token };
+
+/**
+ * mdck (Markdown Check List) のためのコアパーサー。
+ * テキストを受け取り、トークンとカスタムタグの構造に変換する。
+ */
+export class MdckParser {
+  private tokenizer: Tokenizer;
+
+  constructor() {
+    this.tokenizer = new Tokenizer();
+  }
+
+  /**
+   * Markdownコンテンツを解析し、トークンとカスタムタグの情報を抽出する。
+   * これは現時点でのパーサーの主要な機能。
+   * @param content - 解析対象のMarkdown文字列。
+   * @returns 解析結果。生のトークンと抽出されたカスタムタグを含む。
+   */
+  public parse(content: string): ParseResult {
+    // 1. 文字列をトークン列に変換
+    const tokens = this.tokenizer.tokenize(content);
+    // 2. トークン列からカスタムタグを抽出
+    const customTags = parseCustomTags(tokens);
+
+    return {
+      tokens,
+      customTags,
+    };
+  }
 }
