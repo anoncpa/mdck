@@ -1,7 +1,7 @@
 // packages/parser/src/core/custom-tag-parser.ts
 import type Token from 'markdown-it/lib/token.mjs';
-import { parseTagAttributes } from './attribute-parser';
 import { CustomTag } from '../shared/types';
+import { parseTagAttributes } from './tag-attribute-parser';
 
 // mdckが関心を持つカスタムタグのリスト
 const RECOGNIZED_TAGS = /<(Template|Tag|Result|TemplateInstance)\b/i;
