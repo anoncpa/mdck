@@ -1,16 +1,38 @@
+// src/index.ts（修正）
 // packages/parser/src/index.ts
 import { processor } from './core/processor';
 import { extractMdckDirectives } from './core/directive-extractor';
-import { ParseResult, MdckDirective, Root, Directive } from './shared/types';
+import { TemplateExpander } from './core/template-expander';
+import {
+  ParseResult,
+  MdckDirective,
+  Root,
+  Directive,
+  TemplateExpansionResult,
+  TemplateDefinitions,
+} from './shared/types';
 
 // 公開する型を再エクスポート
-export type { ParseResult, MdckDirective, Root, Directive };
+export type {
+  ParseResult,
+  MdckDirective,
+  Root,
+  Directive,
+  TemplateExpansionResult,
+  TemplateDefinitions,
+};
 
 /**
  * mdck (Markdown Check List) のためのコアパーサー。
  * remarkとremark-directiveをベースとし、テキストをASTとディレクティブの構造に変換する。
  */
 export class MdckParser {
+  private readonly templateExpander: TemplateExpander;
+
+  constructor() {
+    this.templateExpander = new TemplateExpander();
+  }
+
   /**
    * Markdownコンテンツを解析し、ASTとmdckディレクティブの情報を抽出する。
    * @param content - 解析対象のMarkdown文字列。
@@ -37,5 +59,60 @@ export class MdckParser {
   public stringify(ast: Root): string {
     const result = processor.stringify(ast);
     return String(result);
+  }
+
+  /**
+   * テンプレートを展開し、完全に解決されたASTを生成する。
+   * @param content - テンプレートを含むMarkdown文字列
+   * @param rootTemplateId - 展開対象のルートテンプレートID
+   * @param filePath - ファイルパス（外部ファイル対応時に使用）
+   * @returns テンプレート展開結果
+   */
+  public expandTemplate(
+    content: string,
+    rootTemplateId: string,
+    filePath?: string
+  ): TemplateExpansionResult {
+    // 1. コンテンツを解析してASTを取得
+    const ast = processor.parse(content);
+
+    // 2. テンプレート定義を収集
+    const definitions = this.templateExpander.collectDefinitions(ast, filePath);
+
+    // 3. テンプレートを展開
+    return this.templateExpander.expandTemplate(rootTemplateId, definitions);
+  }
+
+  /**
+   * 複数のファイルからテンプレート定義を収集し、指定されたテンプレートを展開する。
+   * @param contents - ファイルパスとコンテンツのマップ
+   * @param rootTemplateId - 展開対象のルートテンプレートID
+   * @returns テンプレート展開結果
+   */
+  public expandTemplateFromMultipleFiles(
+    contents: ReadonlyMap<string, string>,
+    rootTemplateId: string
+  ): TemplateExpansionResult {
+    // 全ファイルからテンプレート定義を収集
+    const allDefinitions = new Map();
+
+    for (const [filePath, content] of contents) {
+      const ast = processor.parse(content);
+      const definitions = this.templateExpander.collectDefinitions(ast, filePath);
+
+      // 定義をマージ（重複チェック付き）
+      for (const [id, definition] of definitions) {
+        if (allDefinitions.has(id)) {
+          const existing = allDefinitions.get(id);
+          throw new Error(
+            `Duplicate template definition "${id}" found in ${existing.filePath} and ${filePath}`
+          );
+        }
+        allDefinitions.set(id, definition);
+      }
+    }
+
+    // テンプレートを展開
+    return this.templateExpander.expandTemplate(rootTemplateId, allDefinitions);
   }
 }

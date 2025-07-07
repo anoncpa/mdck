@@ -1,3 +1,4 @@
+// src/shared/types.ts（修正）
 // packages/parser/src/shared/types.ts
 import type { Root, RootContent } from 'mdast';
 import type {
@@ -76,6 +77,16 @@ export interface ParseResult {
    */
   directives: MdckDirective[];
 }
+
+// テンプレート関連型の再エクスポート
+export type {
+  TemplateDefinition,
+  TemplateReference,
+  TemplateExpansionResult,
+  TemplateExpansionSuccess,
+  TemplateExpansionError,
+  TemplateDefinitions,
+} from './template-types';
 
 // 将来の拡張用のプレースホルダー
 export interface MdckConfig {}

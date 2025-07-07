@@ -1,3 +1,4 @@
+// src/run.ts（修正）
 // packages/parser/src/run.ts
 import { MdckParser } from './index';
 
@@ -8,24 +9,33 @@ import { MdckParser } from './index';
 
 const sampleMarkdown = `# 総合ビルド・デプロイチェックリスト
 
+::template{id="main"}
 ## 事前準備
+::template{id="common"}
 
-::template{id="child1" src="./child1.md"}
-
-- [ ] 仕様書が最新か確認する :tag{id="C1"}
-- [x] 関係者にレビュー依頼を送付 :tag{id="C2" mandatory="true"}
-
-:::result{}
-Slack で依頼済み @2025-07-06
-:::
+## デプロイ準備
+::template{id="deploy"}
 
 ## 最終確認
-
-- [ ] プロダクション環境の確認 :tag{id="P1" mandatory="true"}
 
 :::result{}
 プロダクション環境正常、デプロイ可能
 :::
+::
+
+::template{id="common"}
+
+:::result{}
+Slack で依頼済み @2025-07-06
+:::
+::
+
+::template{id="deploy"}
+
+:::result{}
+全テストパス、ステージング正常動作確認
+:::
+::
 `;
 
 /**
@@ -56,6 +66,33 @@ function main() {
       console.log(`     Has children: ${directive.children.length}`);
     }
   });
+
+  // テンプレート展開のテスト
+  console.log('\n--- Template Expansion Test ---');
+  try {
+    const expansionResult = parser.expandTemplate(sampleMarkdown, 'main');
+
+    if (expansionResult.status === 'success') {
+      console.log('Template expansion successful!');
+      console.log(
+        'Used definitions:',
+        Array.from(expansionResult.usedDefinitions.keys())
+      );
+
+      // 展開結果をMarkdownに変換
+      const expandedMarkdown = parser.stringify(expansionResult.expandedAst);
+      console.log('Expanded markdown length:', expandedMarkdown.length);
+    } else {
+      console.log('Template expansion failed:');
+      console.log('Error type:', expansionResult.errorType);
+      console.log('Message:', expansionResult.message);
+    }
+  } catch (error) {
+    console.log(
+      'Template expansion error:',
+      error instanceof Error ? error.message : String(error)
+    );
+  }
 
   // ASTの文字列化をテスト
   console.log('\n--- Stringify Test ---');
