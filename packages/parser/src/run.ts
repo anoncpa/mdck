@@ -9,7 +9,7 @@ import { MdckParser } from './index';
 
 const sampleMarkdown = `# 総合ビルド・デプロイチェックリスト
 
-::template{id="main"}
+:::template{id="main"}
 ## 事前準備
 ::template{id="common"}
 
@@ -17,26 +17,32 @@ const sampleMarkdown = `# 総合ビルド・デプロイチェックリスト
 ::template{id="deploy"}
 
 ## 最終確認
+- [ ] プロダクション環境の確認
 
 :::result{}
 プロダクション環境正常、デプロイ可能
 :::
-::
+:::
 
-::template{id="common"}
+:::template{id="common"}
+- [ ] 仕様書が最新か確認する
+- [x] 関係者にレビュー依頼を送付
 
 :::result{}
 Slack で依頼済み @2025-07-06
 :::
-::
+:::
 
-::template{id="deploy"}
+:::template{id="deploy"}
+- [ ] テストの実行確認
+- [ ] ステージング環境での動作確認
 
 :::result{}
 全テストパス、ステージング正常動作確認
 :::
-::
+:::
 `;
+
 
 /**
  * パーサーをインスタンス化し、サンプルテキストを解析して結果を出力するメイン関数。
