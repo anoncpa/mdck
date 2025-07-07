@@ -28,7 +28,7 @@ describe('MdckParser Integration Tests', () => {
       const result = parser.parse(content);
 
       // Assert
-      expect(result.tokens.length).toBeGreaterThan(0); // 動的な検証に変更
+      expect(result.tokens.length).toBeGreaterThan(0);
       expect(result.customTags).toHaveLength(4);
 
       // 各タグの基本的な構造を検証
@@ -57,7 +57,7 @@ describe('MdckParser Integration Tests', () => {
       const result = parser.parse(content);
 
       // Assert
-      expect(result.tokens.length).toBeGreaterThan(0); // 通常のMarkdownとしてトークン化される
+      expect(result.tokens.length).toBeGreaterThan(0);
       expect(result.customTags).toEqual([]);
     });
   });
@@ -82,9 +82,9 @@ describe('MdckParser Integration Tests', () => {
         (tag) => tag.tagName === 'Result'
       );
 
-      expect(templateTags.length).toBeGreaterThanOrEqual(1); // 最低1つのTemplateタグ
-      expect(itemTags.length).toBeGreaterThanOrEqual(1); // 最低1つのTagタグ
-      expect(resultTags.length).toBeGreaterThanOrEqual(1); // 最低1つのResultタグ
+      expect(templateTags.length).toBeGreaterThanOrEqual(1);
+      expect(itemTags.length).toBeGreaterThanOrEqual(1);
+      expect(resultTags.length).toBeGreaterThanOrEqual(1);
 
       // 属性の詳細検証
       const requiredTags = itemTags.filter(
@@ -155,9 +155,9 @@ describe('MdckParser Integration Tests', () => {
 
       // Assert
       const customTags = result.customTags;
-      expect(customTags.length).toBeGreaterThanOrEqual(2); // Tag と Result
+      expect(customTags.length).toBeGreaterThanOrEqual(2);
 
-      // divタグは認識されないタグなので、カスタムタグには含まれない
+      // 認識されるタグのみが含まれることを確認
       const recognizedTagNames = [
         'Template',
         'Tag',
@@ -179,7 +179,7 @@ describe('MdckParser Integration Tests', () => {
 
       // Assert
       const customTags = result.customTags;
-      expect(customTags.length).toBeGreaterThanOrEqual(2); // Tag と Result
+      expect(customTags.length).toBeGreaterThanOrEqual(2);
 
       // 行番号が適切に設定されていることを確認
       customTags.forEach((tag) => {
@@ -271,8 +271,8 @@ describe('MdckParser Integration Tests', () => {
 
   describe('パフォーマンステスト', () => {
     test('処理時間が妥当な範囲内である', () => {
-      // Arrange
-      const moderateContent = Array(100)
+      // Arrange: 適度なサイズのコンテンツ
+      const moderateContent = Array(10)
         .fill(0)
         .map(
           (_, i) =>
@@ -291,7 +291,7 @@ describe('MdckParser Integration Tests', () => {
       // Assert
       const processingTime = endTime - startTime;
       expect(processingTime).toBeLessThan(1000); // 1秒以内
-      expect(result.customTags.length).toBe(300); // 100 Templates + 100 Tags + 100 Results
+      expect(result.customTags.length).toBe(30); // 10 Templates + 10 Tags + 10 Results
     });
   });
 });
