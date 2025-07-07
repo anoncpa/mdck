@@ -8,12 +8,19 @@ import type {
   TemplateReference,
 } from '../shared/template-types';
 import type { Directive } from '../shared/types';
+import { FileResolver } from './file-resolver';
 
 /**
  * mdckテンプレートの展開を担当するコアクラス。
  * テンプレート定義の収集、参照解決、循環参照検出を責務とする。
  */
 export class TemplateExpander {
+  private readonly fileResolver: FileResolver;
+
+  constructor(fileResolver?: FileResolver) {
+    this.fileResolver = fileResolver || new FileResolver();
+  }
+
   /**
    * 指定されたASTからテンプレート定義を収集する。
    * @param ast 解析対象のAST
@@ -60,6 +67,73 @@ export class TemplateExpander {
   }
 
   /**
+   * 複数のファイルからテンプレート定義を収集する
+   * 外部ファイル参照も含めて、すべてのテンプレート定義を収集する
+   * @param ast メインのAST
+   * @param filePath メインファイルのパス
+   * @returns 収集されたテンプレート定義のマップ
+   */
+  public async collectAllDefinitions(
+    ast: Root,
+    filePath?: string
+  ): Promise<TemplateDefinitions> {
+    const allDefinitions = new Map<string, TemplateDefinition>();
+
+    // 1. メインファイルの定義を収集
+    const mainDefinitions = this.collectDefinitions(ast, filePath);
+    for (const [id, definition] of mainDefinitions) {
+      allDefinitions.set(id, definition);
+    }
+
+    // 2. 外部ファイル参照を収集
+    const references = this.collectReferences(ast);
+    const externalReferences = references.filter((ref) => ref.src);
+
+    // 3. 外部ファイルから定義を収集
+    for (const reference of externalReferences) {
+      if (reference.src) {
+        try {
+          const result = await this.fileResolver.resolveFile(
+            reference.src,
+            filePath
+          );
+
+          if (result.status === 'success') {
+            const externalDefinitions = this.collectDefinitions(
+              result.ast,
+              result.resolvedPath
+            );
+
+            // 定義をマージ（重複チェック付き）
+            for (const [id, definition] of externalDefinitions) {
+              if (allDefinitions.has(id)) {
+                const existing = allDefinitions.get(id);
+                throw new Error(
+                  `Duplicate template definition "${id}" found in ${existing?.filePath} and ${result.resolvedPath}`
+                );
+              }
+              allDefinitions.set(id, definition);
+            }
+          } else {
+            // ファイル解決エラーを適切にスロー
+            throw new Error(
+              `Failed to resolve external file: ${result.message}`
+            );
+          }
+        } catch (error) {
+          throw new Error(
+            `Error processing external file "${reference.src}": ${
+              error instanceof Error ? error.message : 'Unknown error'
+            }`
+          );
+        }
+      }
+    }
+
+    return allDefinitions;
+  }
+
+  /**
    * 指定されたASTからテンプレート参照を収集する。
    * @param ast 解析対象のAST
    * @returns 発見されたテンプレート参照の配列
@@ -96,19 +170,31 @@ export class TemplateExpander {
 
   /**
    * テンプレートを展開し、完全に解決されたASTを生成する。
+   * 外部ファイル参照も自動的に解決される。
    * @param rootTemplateId 展開対象のルートテンプレートID
-   * @param definitions 利用可能なテンプレート定義
+   * @param definitionsOrAst 利用可能なテンプレート定義、またはメインファイルのAST
+   * @param filePath ASTが渡された場合のファイルパス
    * @returns 展開結果（成功または失敗）
    */
-  public expandTemplate(
+  public async expandTemplate(
     rootTemplateId: string,
-    definitions: TemplateDefinitions
-  ): TemplateExpansionResult {
+    definitionsOrAst: TemplateDefinitions | Root,
+    filePath?: string
+  ): Promise<TemplateExpansionResult> {
     try {
+      // 定義の収集（ASTが渡された場合は外部ファイルも含めて収集）
+      const definitions =
+        definitionsOrAst instanceof Map
+          ? definitionsOrAst
+          : await this.collectAllDefinitions(
+              definitionsOrAst as Root,
+              filePath
+            );
+
       const visitedTemplates = new Set<string>();
       const usedDefinitions = new Map<string, TemplateDefinition>();
 
-      const expandedContent = this.expandTemplateRecursive(
+      const expandedContent = await this.expandTemplateRecursive(
         rootTemplateId,
         definitions,
         visitedTemplates,
@@ -165,13 +251,13 @@ export class TemplateExpander {
    * テンプレートを再帰的に展開する内部メソッド。
    * 循環参照検出と依存関係解決を担当する。
    */
-  private expandTemplateRecursive(
+  private async expandTemplateRecursive(
     templateId: string,
     definitions: TemplateDefinitions,
     visitedTemplates: Set<string>,
     usedDefinitions: Map<string, TemplateDefinition>,
     referencePath: string[]
-  ): RootContent[] {
+  ): Promise<RootContent[]> {
     // 循環参照の検出
     if (visitedTemplates.has(templateId)) {
       const cyclePath = [...referencePath, templateId].join(' → ');
@@ -199,7 +285,7 @@ export class TemplateExpander {
         if (refTemplateId) {
           // 再帰的に展開（新しいvisitedTemplatesセットを使用して並列展開を可能にする）
           const newVisitedTemplates = new Set(visitedTemplates);
-          const refContent = this.expandTemplateRecursive(
+          const refContent = await this.expandTemplateRecursive(
             refTemplateId,
             definitions,
             newVisitedTemplates,

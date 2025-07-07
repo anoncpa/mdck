@@ -1,5 +1,4 @@
-// src/shared/types.ts（修正）
-// packages/parser/src/shared/types.ts
+// src/shared/types.ts
 import type { Root, RootContent } from 'mdast';
 import type {
   ContainerDirective,
@@ -87,6 +86,9 @@ export type {
   TemplateExpansionError,
   TemplateDefinitions,
 } from './template-types';
+
+ // ファイル解決関連型の再エクスポート
+ export type { FileResolutionResult } from '../core/file-resolver';
 
 // 将来の拡張用のプレースホルダー
 export interface MdckConfig {}

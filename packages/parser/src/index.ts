@@ -1,8 +1,9 @@
-// src/index.ts（修正）
+// src/index.ts
 // packages/parser/src/index.ts
 import { processor } from './core/processor';
 import { extractMdckDirectives } from './core/directive-extractor';
 import { TemplateExpander } from './core/template-expander';
+ import { FileResolver } from './core/file-resolver';
 import {
   ParseResult,
   MdckDirective,
@@ -10,6 +11,7 @@ import {
   Directive,
   TemplateExpansionResult,
   TemplateDefinitions,
+   FileResolutionResult,
 } from './shared/types';
 
 // 公開する型を再エクスポート
@@ -20,7 +22,11 @@ export type {
   Directive,
   TemplateExpansionResult,
   TemplateDefinitions,
+   FileResolutionResult,
 };
+
+ // 公開するクラスを再エクスポート
+ export { FileResolver };
 
 /**
  * mdck (Markdown Check List) のためのコアパーサー。
@@ -28,9 +34,11 @@ export type {
  */
 export class MdckParser {
   private readonly templateExpander: TemplateExpander;
+   private readonly fileResolver: FileResolver;
 
   constructor() {
-    this.templateExpander = new TemplateExpander();
+     this.fileResolver = new FileResolver();
+     this.templateExpander = new TemplateExpander(this.fileResolver);
   }
 
   /**
@@ -63,24 +71,22 @@ export class MdckParser {
 
   /**
    * テンプレートを展開し、完全に解決されたASTを生成する。
+    * 外部ファイル参照も自動的に解決される。
    * @param content - テンプレートを含むMarkdown文字列
    * @param rootTemplateId - 展開対象のルートテンプレートID
    * @param filePath - ファイルパス（外部ファイル対応時に使用）
    * @returns テンプレート展開結果
    */
-  public expandTemplate(
+   public async expandTemplate(
     content: string,
     rootTemplateId: string,
     filePath?: string
-  ): TemplateExpansionResult {
+  ): Promise<TemplateExpansionResult> {
     // 1. コンテンツを解析してASTを取得
     const ast = processor.parse(content);
 
-    // 2. テンプレート定義を収集
-    const definitions = this.templateExpander.collectDefinitions(ast, filePath);
-
-    // 3. テンプレートを展開
-    return this.templateExpander.expandTemplate(rootTemplateId, definitions);
+     // 2. テンプレートを展開（外部ファイル参照も自動解決）
+     return this.templateExpander.expandTemplate(rootTemplateId, ast, filePath);
   }
 
   /**
@@ -89,10 +95,10 @@ export class MdckParser {
    * @param rootTemplateId - 展開対象のルートテンプレートID
    * @returns テンプレート展開結果
    */
-  public expandTemplateFromMultipleFiles(
+   public async expandTemplateFromMultipleFiles(
     contents: ReadonlyMap<string, string>,
     rootTemplateId: string
-  ): TemplateExpansionResult {
+  ): Promise<TemplateExpansionResult> {
     // 全ファイルからテンプレート定義を収集
     const allDefinitions = new Map();
 
@@ -113,6 +119,27 @@ export class MdckParser {
     }
 
     // テンプレートを展開
-    return this.templateExpander.expandTemplate(rootTemplateId, allDefinitions);
+     return this.templateExpander.expandTemplate(rootTemplateId, allDefinitions);
   }
+
+   /**
+    * 外部ファイルを解決し、内容をASTとして取得する
+    * @param srcPath - ソースファイルパス
+    * @param basePath - 基準ファイルパス
+    * @returns ファイル解決結果
+    */
+   public async resolveExternalFile(
+     srcPath: string,
+     basePath?: string
+   ): Promise<FileResolutionResult> {
+     return this.fileResolver.resolveFile(srcPath, basePath);
+   }
+
+   /**
+    * ファイルキャッシュを無効化する
+    * テスト時やファイル変更時に使用
+    */
+   public clearFileCache(): void {
+     this.fileResolver.clearCache();
+   }
 }

@@ -1,12 +1,10 @@
-// src/run.ts（修正）
-// packages/parser/src/run.ts
+// src/run.ts
 import { MdckParser } from './index';
 
 /**
  * パーサーの動作確認に使用するマークダウンのサンプルテキスト。
  * remark-directiveの構文に準拠した適切な記法を使用。
  */
-
 const sampleMarkdown = `# 総合ビルド・デプロイチェックリスト
 
 :::template{id="main"}
@@ -43,11 +41,67 @@ Slack で依頼済み @2025-07-06
 :::
 `;
 
+/**
+ * 循環参照エラーをテストするためのマークダウン。
+ * templateA → templateB → templateA の循環を作る。
+ */
+const circularReferenceMarkdown = `# 循環参照テストケース
+
+:::template{id="templateA"}
+# Template A
+::template{id="templateB"}
+- [ ] Template A の追加タスク
+:::
+
+:::template{id="templateB"}
+# Template B
+::template{id="templateC"}
+- [ ] Template B の追加タスク
+:::
+
+:::template{id="templateC"}
+# Template C
+::template{id="templateA"}
+- [ ] Template C の追加タスク
+:::
+`;
+
+/**
+ * より複雑な循環参照のテストケース
+ */
+const complexCircularMarkdown = `# 複雑な循環参照テストケース
+
+:::template{id="root"}
+# Root Template
+::template{id="branch1"}
+::template{id="branch2"}
+:::
+
+:::template{id="branch1"}
+# Branch 1
+::template{id="leaf1"}
+:::
+
+:::template{id="branch2"}
+# Branch 2
+::template{id="leaf2"}
+:::
+
+:::template{id="leaf1"}
+# Leaf 1
+::template{id="leaf2"}
+:::
+
+:::template{id="leaf2"}
+# Leaf 2
+::template{id="branch1"}
+:::
+`;
 
 /**
  * パーサーをインスタンス化し、サンプルテキストを解析して結果を出力するメイン関数。
  */
-function main() {
+async function main() {
   console.log('--- MdckParser (remark-based) Execution Start ---');
 
   // パーサーをインスタンス化
@@ -76,7 +130,7 @@ function main() {
   // テンプレート展開のテスト
   console.log('\n--- Template Expansion Test ---');
   try {
-    const expansionResult = parser.expandTemplate(sampleMarkdown, 'main');
+    const expansionResult = await parser.expandTemplate(sampleMarkdown, 'main');
 
     if (expansionResult.status === 'success') {
       console.log('Template expansion successful!');
@@ -100,6 +154,54 @@ function main() {
     );
   }
 
+  // 循環参照エラーテスト
+  console.log('\n--- Circular Reference Test ---');
+  try {
+    const circularResult = await parser.expandTemplate(
+      circularReferenceMarkdown,
+      'templateA'
+    );
+
+    if (circularResult.status === 'error') {
+      console.log('✅ Circular reference correctly detected!');
+      console.log('Error type:', circularResult.errorType);
+      console.log('Message:', circularResult.message);
+    } else {
+      console.log(
+        '❌ Circular reference should have been detected but was not!'
+      );
+    }
+  } catch (error) {
+    console.log(
+      'Circular reference test error:',
+      error instanceof Error ? error.message : String(error)
+    );
+  }
+
+  // 複雑な循環参照エラーテスト
+  console.log('\n--- Complex Circular Reference Test ---');
+  try {
+    const complexCircularResult = await parser.expandTemplate(
+      complexCircularMarkdown,
+      'root'
+    );
+
+    if (complexCircularResult.status === 'error') {
+      console.log('✅ Complex circular reference correctly detected!');
+      console.log('Error type:', complexCircularResult.errorType);
+      console.log('Message:', complexCircularResult.message);
+    } else {
+      console.log(
+        '❌ Complex circular reference should have been detected but was not!'
+      );
+    }
+  } catch (error) {
+    console.log(
+      'Complex circular reference test error:',
+      error instanceof Error ? error.message : String(error)
+    );
+  }
+
   // ASTの文字列化をテスト
   console.log('\n--- Stringify Test ---');
   const stringified = parser.stringify(result.ast);
@@ -112,4 +214,4 @@ function main() {
 }
 
 // スクリプトとして実行された場合にmain関数を呼び出す
-main();
+main().catch(console.error);
