@@ -1,4 +1,4 @@
-// packages/parser/src/shared/attribute-parser.ts
+// packages/parser/src/core/tag-attribute-parser.ts
 import { CustomTagAttributes } from '../shared/types';
 
 /**

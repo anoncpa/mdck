@@ -1,4 +1,4 @@
-// packages/parser/src/__tests__/unit/attribute-parser.test.ts
+// packages/parser/src/__tests__/unit/tag-attribute-parser.test.ts
 import { describe, expect, test } from 'vitest';
 import { parseTagAttributes } from '../../core/tag-attribute-parser';
 import { ExpectedResults } from '../fixtures/expected-results';
