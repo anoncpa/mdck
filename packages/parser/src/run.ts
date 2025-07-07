@@ -44,6 +44,13 @@ function main() {
     console.log(`     Self-closing: ${tag.isSelfClosing}`);
   });
 
+  // 行番号解決の改善を確認
+ console.log('--- Line Number Resolution Test ---');
+ const tagsWithValidLines = result.customTags.filter(tag => tag.line > 0);
+ const tagsWithInvalidLines = result.customTags.filter(tag => tag.line === -1);
+ console.log(`Tags with valid line numbers: ${tagsWithValidLines.length}`);
+ console.log(`Tags with unresolved line numbers: ${tagsWithInvalidLines.length}`);
+
   console.log('--- MdckParser Execution End ---');
 }
 
