@@ -41,6 +41,8 @@ export class TemplateFeatureTester {
     }
   }
 
+  // packages/parser/src/test-template-features.ts の testBasicTemplateDefinition メソッドを修正
+
   /**
    * 1. 基本的なテンプレート定義収集のテスト
    */
@@ -48,6 +50,7 @@ export class TemplateFeatureTester {
     console.log('\n1. 基本的なテンプレート定義収集のテスト');
     console.log('-'.repeat(40));
 
+    // テンプレート参照と定義を明確に区別したテストケース
     const markdown = `
 # メインテンプレート
 
@@ -60,14 +63,16 @@ export class TemplateFeatureTester {
       実行結果をここに記載
       </Result>
 
+<!-- これは参照（自己終了タグ） -->
 <Template id="sub" />
 </Template>
 
+<!-- これは定義（非自己終了タグ） -->
 <Template id="sub">
 ### サブセクション
 - [ ] サブ項目 <Tag itemId="S1" />
 </Template>
-    `;
+  `;
 
     try {
       const definitions =
@@ -79,11 +84,22 @@ export class TemplateFeatureTester {
         console.log(
           `  - ID: ${id}, 開始行: ${def.startLine}, 依存関係: ${def.dependencies.length}個`
         );
+        if (def.dependencies.length > 0) {
+          console.log(`    依存関係: ${def.dependencies.join(', ')}`);
+        }
       }
 
       // 期待値の確認
       if (definitions.has('main') && definitions.has('sub')) {
         console.log('✓ 期待されるテンプレートが全て収集されました');
+
+        // mainテンプレートがsubへの依存関係を持っているかチェック
+        const mainDef = definitions.get('main');
+        if (mainDef && mainDef.dependencies.includes('sub')) {
+          console.log('✓ 依存関係が正しく検出されました');
+        } else {
+          console.log('⚠️  依存関係の検出に問題があります');
+        }
       } else {
         console.log('⚠️  一部のテンプレートが収集されませんでした');
       }
