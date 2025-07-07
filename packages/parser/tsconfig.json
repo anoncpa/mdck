@@ -3,8 +3,9 @@
   "extends": "@mdck/tsconfig/base.json",
   "include": [
     "src",
+    "src/__tests__",
     "vitest.config.ts"
-  ],
+, "tsup.config.ts"  ],
   "exclude": [
     "node_modules",
     "dist"
