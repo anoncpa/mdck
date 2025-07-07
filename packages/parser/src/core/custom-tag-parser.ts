@@ -1,97 +1,77 @@
-// packages/parser/src/core/custom-tag-parser.ts
+// @/packages/parser/src/core/custom-tag-parser.ts
 import type { Token } from '../shared/types';
 import { CustomTag } from '../shared/types';
 import { parseTagAttributes } from './tag-attribute-parser';
 
-// mdckが関心を持つカスタムタグのリスト
-const RECOGNIZED_TAGS = /<(Template|Tag|Result|TemplateInstance)\b/i;
+/**
+ * mdck が認識するタグを 1 トークンから複数抽出するためのグローバル正規表現
+ * – 開始タグ／自己終了タグのみを対象（閉じタグ </..> は除外）
+ */
+const TAG_PATTERN =
+  /<(?!(?:\/))(TemplateInstance|Template|Tag|Result)\b[^>]*?\/?>/g;
 
 /**
- * トークンの行番号を解決する。
- * インライントークンで直接的な行番号が取得できない場合、
- * 親トークンの情報を使用して推定する。
- *
- * @param token - 行番号を取得したいトークン
- * @param parentToken - 親トークン（存在する場合）
- * @returns 1-based行番号、または推定できない場合は-1
+ * トークン先頭行番号 (1-based) とトークン内オフセット行数から
+ * 実際の行番号 (1-based) を導出する。
  */
-function resolveLineNumber(token: Token, parentToken?: Token): number {
-  // 直接的な行番号が存在する場合（ブロックレベルトークン）
+function resolveLineNumber(
+  token: Token,
+  parentToken: Token | undefined,
+  offsetLines: number
+): number {
   if (token.map && token.map[0] !== null) {
-    return token.map[0] + 1; // 0-basedから1-basedに変換
+    // ブロックレベルトークン
+    return token.map[0] + 1 + offsetLines;
   }
 
-  // 親トークンから行番号を推定（インラインレベルトークン）
   if (parentToken && parentToken.map && parentToken.map[0] !== null) {
-    return parentToken.map[0] + 1; // 親トークンの開始行を使用
+    // インライントークン：親トークンを基準
+    return parentToken.map[0] + 1 + offsetLines;
   }
 
-  // どちらも取得できない場合は-1を返す
+  // 行番号が特定できない場合
   return -1;
 }
 
 /**
- * トークン配列内でコンテキスト（親子関係）を保持しながら
- * カスタムタグを検索する内部インターフェース。
- */
-interface TokenContext {
-  token: Token;
-  parentToken?: Token;
-  depth: number;
-}
-
-/**
- * markdown-itのトークン列を走査し、mdckのカスタムタグを抽出する。
- * 親トークンの情報を活用して、より正確な行番号を提供する。
- * @param tokens - Tokenizerによって生成されたトークンの配列。
- * @returns 抽出されたCustomTagオブジェクトの配列。
+ * markdown-it のトークン列を走査し、mdck カスタムタグを抽出する。
+ * 1 トークン内に複数タグが存在するケースにも対応。
  */
 export function parseCustomTags(tokens: Token[]): CustomTag[] {
   const customTags: CustomTag[] = [];
 
-  /**
-   * トークンツリーを再帰的に探索し、親トークンの情報を保持する内部関数。
-   * 親子関係を明示的に管理することで、正確な行番号解決を実現する。
-   */
-  function findTagsRecursively(tokenArray: Token[], parentToken?: Token): void {
+  /** 深さ優先でトークンを探索し、親トークン情報を保持する */
+  function traverse(tokenArray: Token[], parentToken?: Token): void {
     for (const token of tokenArray) {
-      // カスタムタグはhtml_inlineまたはhtml_blockとして認識される
-      if (
-        (token.type === 'html_inline' || token.type === 'html_block') &&
-        RECOGNIZED_TAGS.test(token.content)
-      ) {
-        const match = token.content.match(RECOGNIZED_TAGS);
-        if (match) {
-          const tagName = match[1];
-          // タグ名の厳密な型チェック
-          if (
-            tagName !== 'Template' &&
-            tagName !== 'Tag' &&
-            tagName !== 'Result' &&
-            tagName !== 'TemplateInstance'
-          ) {
-            continue;
-          }
+      if (token.type === 'html_inline' || token.type === 'html_block') {
+        const content = token.content;
+        let match: RegExpExecArray | null;
 
-          // 新しい行番号解決ロジックを使用
-          const line = resolveLineNumber(token, parentToken);
+        // 同一トークン内に複数タグがあればすべて抽出
+        while ((match = TAG_PATTERN.exec(content)) !== null) {
+          const [matchedText, tagName] = match;
+          const offset = content.slice(0, match.index).split('\n').length - 1;
 
           customTags.push({
-            tagName,
-            attributes: parseTagAttributes(token.content),
-            isSelfClosing: token.content.trim().endsWith('/>'),
-            line,
+            tagName: tagName as
+              | 'Template'
+              | 'Tag'
+              | 'Result'
+              | 'TemplateInstance',
+            attributes: parseTagAttributes(matchedText),
+            isSelfClosing: matchedText.trim().endsWith('/>'),
+            line: resolveLineNumber(token, parentToken, offset),
           });
         }
       }
 
-      // 子トークンが存在する場合、現在のトークンを親として再帰的に探索
+      // 子トークンを再帰的に探索
       if (token.children) {
-        findTagsRecursively(token.children, token);
+        traverse(token.children, token);
       }
     }
   }
 
-  findTagsRecursively(tokens);
+  traverse(tokens);
   return customTags;
 }
