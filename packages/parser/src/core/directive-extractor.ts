@@ -13,6 +13,25 @@ function isMdckDirectiveName(name: string): name is MdckDirectiveName {
 }
 
 /**
+ * ディレクティブの属性をフィルタリングし、null/undefinedを除去する。
+ * @param attributes - 元の属性オブジェクト
+ * @returns フィルタリングされた属性オブジェクト
+ */
+function filterAttributes(
+  attributes: Record<string, string | null | undefined> | null | undefined
+): Record<string, string> {
+  if (!attributes) return {};
+
+  const filtered: Record<string, string> = {};
+  for (const [key, value] of Object.entries(attributes)) {
+    if (typeof value === 'string') {
+      filtered[key] = value;
+    }
+  }
+  return filtered;
+}
+
+/**
  * remarkが生成したAST (mdast) を走査し、mdckに関連するディレクティブ情報を抽出する。
  * @param ast - 解析対象のAST (Rootノード)
  * @returns 抽出されたmdckディレクティブの配列
@@ -35,8 +54,8 @@ export function extractMdckDirectives(ast: Root): MdckDirective[] {
         directives.push({
           name: directive.name,
           type: directive.type,
-          // 属性が存在しない場合は空オブジェクトを割り当てる
-          attributes: directive.attributes ?? {},
+          // 属性をフィルタリングしてnull/undefinedを除去
+          attributes: filterAttributes(directive.attributes),
           // 子ノードはcontainerDirectiveの場合のみ存在
           children: 'children' in directive ? directive.children : [],
           // 位置情報から開始行を取得 (1-based)。なければ-1

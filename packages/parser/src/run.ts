@@ -3,27 +3,32 @@ import { MdckParser } from './index';
 
 /**
  * パーサーの動作確認に使用するマークダウンのサンプルテキスト。
- * remark-directiveの構文 (`::name{key=value}`) を使用。
+ * remark-directiveの構文に準拠した適切な記法を使用。
  */
-const sampleMarkdown = `
-# 総合ビルド・デプロイチェックリスト
+const sampleMarkdown = `# 総合ビルド・デプロイチェックリスト
 
 ## 事前準備
 
-::template{id=child1 src=./child1.md}
+::template{id="child1" src="./child1.md"}
 
-- [ ] 仕様書が最新か確認する ::tag{id=C1}
-- [x] 関係者にレビュー依頼を送付 ::tag{id=C2 mandatory=true}
+- [ ] 仕様書が最新か確認する
+::tag{id="C1"}
 
+- [x] 関係者にレビュー依頼を送付
+::tag{id="C2" mandatory="true"}
 ::result
 Slack で依頼済み @2025-07-06
 ::
 
 ## 最終確認
 
-- [ ] プロダクション環境の確認 ::tag{id=P1 mandatory=true}
-      ::result{}::
+- [ ] プロダクション環境の確認
+::tag{id="P1" mandatory="true"}
+::result
+プロダクション環境正常、デプロイ可能
+::
 `;
+
 
 /**
  * パーサーをインスタンス化し、サンプルテキストを解析して結果を出力するメイン関数。
