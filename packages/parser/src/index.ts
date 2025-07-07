@@ -35,6 +35,7 @@ export class MdckParser {
    * @returns Markdown文字列
    */
   public stringify(ast: Root): string {
-    return processor.stringify(ast);
+    const result = processor.stringify(ast);
+    return String(result);
   }
 }

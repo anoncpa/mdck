@@ -1,16 +1,18 @@
 // packages/parser/src/shared/types.ts
-import type { Root, Content } from 'mdast';
-
-// remark と mdast の主要な型を再エクスポート
-export type { Root, Content };
+import type { Root, RootContent } from 'mdast';
 import type {
   ContainerDirective,
   LeafDirective,
   TextDirective,
 } from 'mdast-util-directive';
 
-// Create a union type for convenience:
+// remark と mdast の主要な型を再エクスポート
+export type { Root, RootContent };
+export type { ContainerDirective, LeafDirective, TextDirective };
+
+// 統合的なディレクティブ型
 export type Directive = ContainerDirective | LeafDirective | TextDirective;
+
 /**
  * mdckが扱うディレクティブの種類。
  * remark-directiveの 'name' プロパティに対応する。
@@ -22,9 +24,6 @@ export type MdckDirectiveName = 'template' | 'tag' | 'result';
  * ASTの 'Directive' ノードから必要な情報を抽出して生成される。
  */
 export interface MdckDirective {
-  /**
-   * ディレクティブ名 (例: "template", "tag", "result")
-   */
   name: MdckDirectiveName;
 
   /**
@@ -44,7 +43,7 @@ export interface MdckDirective {
    * ディレクティブのコンテンツ(子ノード)
    * containerDirectiveの場合にのみ子要素を持つ。
    */
-  children: Content[];
+  children: RootContent[];
 
   /**
    * このディレクティブが出現したソースコードの開始行番号 (1-based)
