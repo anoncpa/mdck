@@ -66,69 +66,76 @@ export class TemplateExpander {
     return definitions;
   }
 
-  /**
-   * 複数のファイルからテンプレート定義を収集する
-   * 外部ファイル参照も含めて、すべてのテンプレート定義を収集する
-   * @param ast メインのAST
-   * @param filePath メインファイルのパス
-   * @returns 収集されたテンプレート定義のマップ
-   */
+  // src/core/template-expander.ts の collectAllDefinitions メソッドを修正
+
   public async collectAllDefinitions(
     ast: Root,
     filePath?: string
   ): Promise<TemplateDefinitions> {
     const allDefinitions = new Map<string, TemplateDefinition>();
+    const processedFiles = new Set<string>(); // 循環処理防止
 
-    // 1. メインファイルの定義を収集
-    const mainDefinitions = this.collectDefinitions(ast, filePath);
-    for (const [id, definition] of mainDefinitions) {
-      allDefinitions.set(id, definition);
-    }
+    // 再帰的に外部ファイルを処理する内部関数
+    const processFile = async (
+      currentAst: Root,
+      currentFilePath?: string
+    ): Promise<void> => {
+      if (currentFilePath && processedFiles.has(currentFilePath)) {
+        return; // 既に処理済み
+      }
+      if (currentFilePath) {
+        processedFiles.add(currentFilePath);
+      }
 
-    // 2. 外部ファイル参照を収集
-    const references = this.collectReferences(ast);
-    const externalReferences = references.filter((ref) => ref.src);
-
-    // 3. 外部ファイルから定義を収集
-    for (const reference of externalReferences) {
-      if (reference.src) {
-        try {
-          const result = await this.fileResolver.resolveFile(
-            reference.src,
-            filePath
-          );
-
-          if (result.status === 'success') {
-            const externalDefinitions = this.collectDefinitions(
-              result.ast,
-              result.resolvedPath
-            );
-
-            // 定義をマージ（重複チェック付き）
-            for (const [id, definition] of externalDefinitions) {
-              if (allDefinitions.has(id)) {
-                const existing = allDefinitions.get(id);
-                throw new Error(
-                  `Duplicate template definition "${id}" found in ${existing?.filePath} and ${result.resolvedPath}`
-                );
-              }
-              allDefinitions.set(id, definition);
-            }
-          } else {
-            // ファイル解決エラーを適切にスロー
-            throw new Error(
-              `Failed to resolve external file: ${result.message}`
-            );
-          }
-        } catch (error) {
+      // 1. 現在のファイルの定義を収集
+      const currentDefinitions = this.collectDefinitions(
+        currentAst,
+        currentFilePath
+      );
+      for (const [id, definition] of currentDefinitions) {
+        if (allDefinitions.has(id)) {
+          const existing = allDefinitions.get(id);
           throw new Error(
-            `Error processing external file "${reference.src}": ${
-              error instanceof Error ? error.message : 'Unknown error'
-            }`
+            `Duplicate template definition "${id}" found in ${existing?.filePath} and ${currentFilePath}`
           );
         }
+        allDefinitions.set(id, definition);
       }
-    }
+
+      // 2. 外部ファイル参照を収集
+      const references = this.collectReferences(currentAst);
+      const externalReferences = references.filter((ref) => ref.src);
+
+      // 3. 外部ファイルから定義を再帰的に収集
+      for (const reference of externalReferences) {
+        if (reference.src) {
+          try {
+            const result = await this.fileResolver.resolveFile(
+              reference.src,
+              currentFilePath
+            );
+
+            if (result.status === 'success') {
+              // 再帰的に外部ファイルを処理
+              await processFile(result.ast, result.resolvedPath);
+            } else {
+              throw new Error(
+                `Failed to resolve external file: ${result.message}`
+              );
+            }
+          } catch (error) {
+            throw new Error(
+              `Error processing external file "${reference.src}": ${
+                error instanceof Error ? error.message : 'Unknown error'
+              }`
+            );
+          }
+        }
+      }
+    };
+
+    // メインファイルから開始
+    await processFile(ast, filePath);
 
     return allDefinitions;
   }
