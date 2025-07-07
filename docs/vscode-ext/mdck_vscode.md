@@ -1,8 +1,8 @@
-# mdck VS Code 拡張機能 仕様詳細
+# mdck VS Code 拡張機能 仕様詳細（remark+remark-directive版）
 
 ## 1. 概要
 
-mdck（Markdown Check List）VS Code 拡張機能は、拡張 Markdown 記法を用いたチェックリスト作成・管理を支援する開発者向けツールです。
+mdck（Markdown Check List）VS Code 拡張機能は、remarkとremark-directiveによる拡張Markdown記法を用いたチェックリスト作成・管理を支援する開発者向けツールです。
 
 ## 2. 基本機能
 
@@ -17,6 +17,7 @@ mdck（Markdown Check List）VS Code 拡張機能は、拡張 Markdown 記法を
 ### 2.2 パッケージ構成
 
 ```
+
 vscode-ext/
 ├── package.json
 ├── src/
@@ -28,7 +29,8 @@ vscode-ext/
 ├── syntaxes/
 │   └── markdown-checklist.tmLanguage.json
 └── snippets/
-    └── mdck.json
+└── mdck.json
+
 ```
 
 ### 2.3 VS Code 拡張が担当する範囲
@@ -50,29 +52,55 @@ vscode-ext/
 {
   "scopeName": "text.html.markdown.checklist",
   "patterns": [
-    { "include": "#template-block" },
-    { "include": "#tag-inline" },
-    { "include": "#result-block" }
+    { "include": "#template-directive" },
+    { "include": "#tag-directive" },
+    { "include": "#result-directive" }
   ],
   "repository": {
-    "template-block": {
+    "template-directive": {
       "name": "entity.name.tag.tsx",
-      "begin": "<Template\\b[^>]*>",
-      "end": "</Template>",
       "patterns": [
-        { "include": "#template-attributes" },
-        { "include": "#tag-inline" },
-        { "include": "#result-block" }
+        {
+          "name": "markup.heading.template.mdck",
+          "begin": "::template\\{",
+          "end": "\\}",
+          "patterns": [{ "include": "#directive-attributes" }]
+        },
+        {
+          "name": "markup.heading.template.mdck",
+          "begin": "::template\\{[^}]*\\}",
+          "end": "::",
+          "patterns": [
+            { "include": "#tag-directive" },
+            { "include": "#result-directive" }
+          ]
+        }
       ]
     },
-    "tag-inline": {
-      "name": "entity.name.tag.tsx",
-      "match": "<Tag\\b[^/>]*/>"
+    "tag-directive": {
+      "name": "entity.name.type.tag.mdck",
+      "match": "::tag\\{[^}]*\\}"
     },
-    "result-block": {
-      "name": "entity.name.tag.tsx",
-      "begin": "<Result>",
-      "end": "</Result>"
+    "result-directive": {
+      "name": "string.unquoted.result.mdck",
+      "begin": "::result\\{[^}]*\\}",
+      "end": "::"
+    },
+    "directive-attributes": {
+      "patterns": [
+        {
+          "name": "entity.other.attribute-name.id.mdck",
+          "match": "#id\\s*=\\s*[^\\s}]+"
+        },
+        {
+          "name": "entity.other.attribute-name.src.mdck",
+          "match": "src\\s*=\\s*[^\\s}]+"
+        },
+        {
+          "name": "entity.other.attribute-name.mandatory.mdck",
+          "match": "mandatory\\s*=\\s*(true|false)"
+        }
+      ]
     }
   }
 }
@@ -80,24 +108,26 @@ vscode-ext/
 
 ### 3.2 カラーテーマ設定
 
-| スコープ                     | デフォルト色        | 用途                                          |
-| :--------------------------- | :------------------ | :-------------------------------------------- |
-| markup.heading.template.mdck | entity.name.tag.tsx | Template タグ（React コンポーネントと同色）   |
-| entity.name.type.tag.mdck    | entity.name.tag.tsx | Tag タグ（React コンポーネントと同色）        |
-| string.unquoted.result.mdck  | entity.name.tag.tsx | Result ブロック（React コンポーネントと同色） |
+| スコープ                     | デフォルト色        | 用途                                                  |
+| :--------------------------- | :------------------ | :---------------------------------------------------- |
+| markup.heading.template.mdck | entity.name.tag.tsx | template ディレクティブ（React コンポーネントと同色） |
+| entity.name.type.tag.mdck    | entity.name.tag.tsx | tag ディレクティブ（React コンポーネントと同色）      |
+| string.unquoted.result.mdck  | entity.name.tag.tsx | result ディレクティブ（React コンポーネントと同色）   |
 
 ## 4. キャッシュシステム
 
 ### 4.1 キャッシュファイル構造
 
 ```
+
 .mdck/
 ├── .cache/
-│   ├── template-ids.json     # TemplateId一覧
-│   ├── item-ids.json         # itemId一覧
-│   ├── metadata.json         # メタデータ
-│   └── lint-results.json     # 最新のlint結果
+│   ├── metadata.json         # 統合メタデータ
+│   ├── files.json            # ファイル別キャッシュ
+│   ├── templates.json        # テンプレート定義キャッシュ
+│   └── dependencies.json     # 依存関係グラフ
 └── config.yml                # 設定ファイル
+
 ```
 
 ### 4.2 キャッシュ管理 API
@@ -114,7 +144,13 @@ interface MdckCache {
   templateIds: string[];
   itemIds: string[];
   externalRefs: { [id: string]: string }; // id -> filePath
+  templateDefinitions: { [id: string]: TemplateDefinition };
+  fileDependencies: { [filePath: string]: string[] };
   lastUpdated: number;
+  metadata: {
+    fileCount: number;
+    schemaVersion: string; // "2.0.0" (remarkベース)
+  };
 }
 ```
 
@@ -123,8 +159,8 @@ interface MdckCache {
 ### 5.1 補完プロバイダー
 
 ```typescript
-// ✅ キャッシュデータも@mdck/parserから取得
-import { MdckParser, CacheData } from "@mdck/parser";
+// remarkとremark-directiveベースの@mdck/parserから取得
+import { MdckParser, CacheData } from '@mdck/parser';
 
 export class MdckCompletionProvider implements vscode.CompletionItemProvider {
   private parser: MdckParser;
@@ -140,19 +176,20 @@ export class MdckCompletionProvider implements vscode.CompletionItemProvider {
     // @mdck/parserからキャッシュデータを取得
     const cacheData = await this.parser.getCacheData();
 
-    if (linePrefix.includes('itemId="')) {
-      return this.createCompletionItems(cacheData.itemIds);
+    if (linePrefix.includes('#id=')) {
+      return this.createCompletionItems(
+        cacheData.itemIds.concat(cacheData.templateIds)
+      );
     }
 
-    if (linePrefix.includes('TemplateId="')) {
-      return this.createCompletionItems(cacheData.templateIds);
+    if (linePrefix.includes('::')) {
+      return this.createDirectiveCompletions();
     }
 
     return [];
   }
 
   private createCompletionItems(ids: string[]): vscode.CompletionItem[] {
-    // VS Code固有の変換処理のみ
     return ids.map((id) => {
       const item = new vscode.CompletionItem(
         id,
@@ -162,26 +199,49 @@ export class MdckCompletionProvider implements vscode.CompletionItemProvider {
       return item;
     });
   }
+
+  private createDirectiveCompletions(): vscode.CompletionItem[] {
+    return [
+      {
+        label: 'template',
+        kind: vscode.CompletionItemKind.Snippet,
+        insertText: 'template{#id=\$1}\n\$0\n::',
+        documentation: 'Template definition block',
+      },
+      {
+        label: 'tag',
+        kind: vscode.CompletionItemKind.Snippet,
+        insertText: 'tag{#id=\$1}',
+        documentation: 'Tag directive',
+      },
+      {
+        label: 'result',
+        kind: vscode.CompletionItemKind.Snippet,
+        insertText: 'result{}\n\$0\n::',
+        documentation: 'Result block',
+      },
+    ];
+  }
 }
 ```
 
 ### 5.2 補完候補
 
-| トリガー       | 補完内容                                  | 説明                 |
-| :------------- | :---------------------------------------- | :------------------- |
-| `<Te`          | `<Template TemplateId="$1">$0</Template>` | Template 定義        |
-| `<Ta`          | `<Tag itemId="$1" />`                     | Tag 参照             |
-| `<Re`          | `<Result>$0</Result>`                     | Result 部            |
-| `itemId="`     | キャッシュから itemId 一覧                | 既存 ID 補完         |
-| `TemplateId="` | キャッシュから TemplateId 一覧            | 既存 TemplateID 補完 |
+| トリガー | 補完内容                     | 説明             |
+| :------- | :--------------------------- | :--------------- |
+| `::te`   | `::template{#id=$1}\n$0\n::` | Template 定義    |
+| `::ta`   | `::tag{#id=$1}`              | Tag 参照         |
+| `::re`   | `::result{}\n$0\n::`         | Result 部        |
+| `#id="`  | キャッシュから id 一覧       | 既存 ID 補完     |
+| `src="`  | 相対パス補完                 | 外部ファイル参照 |
 
 ## 6. 診断機能（Linter 連携）
 
 ### 6.1 診断プロバイダー
 
 ```typescript
-// ✅ @mdck/parserに完全依存
-import { MdckParser, LintResult } from "@mdck/parser";
+// remarkとremark-directiveベースの@mdck/parserに完全依存
+import { MdckParser, LintResult } from '@mdck/parser';
 
 export class MdckDiagnosticProvider {
   private parser: MdckParser;
@@ -192,7 +252,10 @@ export class MdckDiagnosticProvider {
 
   async updateDiagnostics(document: vscode.TextDocument): Promise<void> {
     // @mdck/parserの機能のみ使用
-    const lintResults = await this.parser.lint(document.getText());
+    const lintResults = await this.parser.lint(
+      document.getText(),
+      document.fileName
+    );
 
     const diagnostics = lintResults.map((result) =>
       this.createDiagnostic(result)
@@ -214,9 +277,12 @@ export class MdckDiagnosticProvider {
 ### 6.2 エラー表示例
 
 ```
-M020: Missing required Result block [Error]
-M011: Invalid itemId format: "invalid-id" [Warning]
-M060: Custom item detected (no Tag) [Info]
+
+M020: Missing required result block [Error]
+M011: Invalid id format: "invalid-id" [Warning]
+M006: Directive name must be lowercase: "Template" should be "template" [Error]
+M060: Custom item detected (no tag directive) [Info]
+
 ```
 
 ## 7. コードアクション機能
@@ -234,54 +300,114 @@ export class MdckCodeActionProvider implements vscode.CodeActionProvider {
 
     for (const diagnostic of context.diagnostics) {
       switch (diagnostic.code) {
-        case "M020": // 必須Result欠落
+        case 'M020': // 必須result欠落
           actions.push(this.createInsertResultAction(document, range));
           break;
-        case "M006": // タグ名大文字化
-          actions.push(this.createCapitalizeTagAction(document, range));
+        case 'M006': // ディレクティブ名小文字化
+          actions.push(this.createLowercaseDirectiveAction(document, range));
           break;
-        case "M043": // JSX形式
-          actions.push(this.createSelfClosingTagAction(document, range));
+        case 'M007': // 属性名規則
+          actions.push(this.createFixAttributeNameAction(document, range));
+          break;
+        case 'M043': // ディレクティブ形式
+          actions.push(this.createFixDirectiveFormatAction(document, range));
           break;
       }
     }
 
     return actions;
   }
+
+  private createInsertResultAction(
+    document: vscode.TextDocument,
+    range: vscode.Range
+  ): vscode.CodeAction {
+    const action = new vscode.CodeAction(
+      'Insert result block',
+      vscode.CodeActionKind.QuickFix
+    );
+
+    const edit = new vscode.WorkspaceEdit();
+    edit.insert(document.uri, range.end, '\n::result{}\n\n::');
+    action.edit = edit;
+
+    return action;
+  }
+
+  private createLowercaseDirectiveAction(
+    document: vscode.TextDocument,
+    range: vscode.Range
+  ): vscode.CodeAction {
+    const action = new vscode.CodeAction(
+      'Convert directive name to lowercase',
+      vscode.CodeActionKind.QuickFix
+    );
+
+    const text = document.getText(range);
+    const fixedText = text.replace(
+      /::([A-Z])/g,
+      (match, p1) => `::${p1.toLowerCase()}`
+    );
+
+    const edit = new vscode.WorkspaceEdit();
+    edit.replace(document.uri, range, fixedText);
+    action.edit = edit;
+
+    return action;
+  }
 }
 ```
 
 ### 7.2 リファクタリング機能
 
-| アクション          | 説明                       | キーバインド   |
-| :------------------ | :------------------------- | :------------- |
-| Insert Result Block | 必須 Result ブロックを挿入 | `Ctrl+Shift+R` |
+| アクション           | 説明                       | キーバインド   |
+| :------------------- | :------------------------- | :------------- |
+| Insert Result Block  | 必須 result ブロックを挿入 | `Ctrl+Shift+R` |
+| Convert to Lowercase | ディレクティブ名を小文字化 | `Ctrl+Shift+L` |
 
 ## 8. ホバー機能
 
 ### 8.1 ホバープロバイダー
 
 ```typescript
-export class MdckHoverProvider implements vscode.HoverProvider {
-  provideHover(
-    document: vscode.TextDocument,
-    position: vscode.Position
-  ): vscode.Hover | undefined {
-    const wordRange = document.getWordRangeAtPosition(position);
-    const word = document.getText(wordRange);
 
-    // Template参照時のプレビュー
+export class MdckHoverProvider implements vscode.HoverProvider {
+private parser: MdckParser;
+
+constructor() {
+this.parser = new MdckParser();
+}
+
+async provideHover(
+document: vscode.TextDocument,
+position: vscode.Position
+): Promise<vscode.Hover | undefined> {
+const range = document.getWordRangeAtPosition(position);
+const word = document.getText(range);
+
+    // template参照時のプレビュー
     if (this.isTemplateReference(document, position)) {
-      const templateContent = this.getTemplateContent(word);
-      return new vscode.Hover(
-        new vscode.MarkdownString(templateContent),
-        wordRange
-      );
+      const cacheData = await this.parser.getCacheData();
+      const templateDef = cacheData.templateDefinitions[word];
+
+      if (templateDef) {
+        const content = `**Template: ${word}**\n\nFile: ${templateDef.filePath}\nLine: ${templateDef.startLine}`;
+        return new vscode.Hover(
+          new vscode.MarkdownString(content),
+          range
+        );
+      }
     }
 
     return undefined;
-  }
+    }
+
+private isTemplateReference(document: vscode.TextDocument, position: vscode.Position): boolean {
+const line = document.lineAt(position).text;
+return line.includes('::template{') \&\& line.includes('#id=');
 }
+}
+
 ```
 
 ## 9. ショートカット・コマンド
@@ -290,18 +416,19 @@ export class MdckHoverProvider implements vscode.HoverProvider {
 
 ```typescript
 export const commands = {
-  "mdck.insertTemplate": "Insert Template",
-  "mdck.insertTag": "Insert Tag",
-  "mdck.insertResult": "Insert Result",
-  "mdck.generateChecklist": "Generate Checklist from Template",
-  "mdck.validateAll": "Validate All mdck Files",
-  "mdck.refreshCache": "Refresh Cache",
+  'mdck.insertTemplate': 'Insert Template',
+  'mdck.insertTag': 'Insert Tag',
+  'mdck.insertResult': 'Insert Result',
+  'mdck.generateChecklist': 'Generate Checklist from Template',
+  'mdck.validateAll': 'Validate All mdck Files',
+  'mdck.refreshCache': 'Refresh Cache',
+  'mdck.convertToDirectives': 'Convert HTML tags to directives',
 };
 ```
 
 ### 9.2 キーバインド設定
 
-```jsonc
+```json
 [
   {
     "command": "mdck.insertTemplate",
@@ -321,24 +448,28 @@ export const commands = {
 ]
 ```
 
-## 10. 設定項目
+## 11. 設定項目
 
-### 10.1 拡張機能設定
+### 11.1 拡張機能設定
 
-```jsonc
-{
-  "mdck.enableLinting": true,
-  "mdck.autoSave": true,
-  "mdck.cacheRefreshInterval": 5000,
-  "mdck.itemIdFormat": "^[a-zA-Z0-9_-]+$",
-  "mdck.autoFixOnSave": true,
-  "mdck.showInfoDiagnostics": false
-}
 ```
 
-### 10.2 ワークスペース設定例
+{
+"mdck.enableLinting": true,
+"mdck.autoSave": true,
+"mdck.cacheRefreshInterval": 5000,
+"mdck.itemIdFormat": "^[a-zA-Z0-9_-]+\$",
+"mdck.autoFixOnSave": true,
+"mdck.showInfoDiagnostics": false,
+"mdck.enforceDirectiveCase": true,
+"mdck.enforceDirectiveFormat": true
+}
 
-```jsonc
+```
+
+### 11.2 ワークスペース設定例
+
+```json
 {
   "files.associations": {
     "*.md": "markdown-checklist"
@@ -346,13 +477,17 @@ export const commands = {
   "mdck.templatePaths": [
     "checklists/templates/**/*.md",
     "shared/templates/**/*.md"
-  ]
+  ],
+  "mdck.directiveValidation": {
+    "allowHTMLTags": false,
+    "strictAttributeNames": true
+  }
 }
 ```
 
-## 11. ステータスバー連携
+## 12. ステータスバー連携
 
-### 11.1 ステータス表示
+### 12.1 ステータス表示
 
 ```typescript
 export class MdckStatusBarManager {
@@ -368,18 +503,18 @@ export class MdckStatusBarManager {
     this.statusBarItem.tooltip = `Templates: ${stats.templates}, Items: ${stats.items}, Errors: ${stats.errors}`;
     this.statusBarItem.backgroundColor =
       stats.errors > 0
-        ? new vscode.ThemeColor("statusBarItem.errorBackground")
+        ? new vscode.ThemeColor('statusBarItem.errorBackground')
         : undefined;
   }
 }
 ```
 
-## 12. ファイル監視・同期
+## 13. ファイル監視・同期
 
-### 12.1 ファイルウォッチャー
+### 13.1 ファイルウォッチャー
 
 ```typescript
-// ✅ ファイル変更通知のみ、解析は@mdck/parserに委譲
+// ファイル変更通知のみ、解析はremarkベース@mdck/parserに委譲
 export class MdckFileWatcher {
   private parser: MdckParser;
 
@@ -389,11 +524,57 @@ export class MdckFileWatcher {
   }
 
   private async onFileChanged(uri: vscode.Uri): Promise<void> {
-    // ファイル変更を@mdck/parserに通知するだけ
-    await this.parser.onFileChanged(uri.fsPath);
+    // ファイル変更をremarkベース@mdck/parserに通知するだけ
+    await this.parser.refreshCache([uri.fsPath]);
 
     // VS Code固有の処理（診断更新など）
     this.triggerDiagnosticUpdate(uri);
   }
+
+  private setupWatcher(): void {
+    const watcher = vscode.workspace.createFileSystemWatcher('**/*.md');
+
+    watcher.onDidChange(this.onFileChanged.bind(this));
+    watcher.onDidCreate(this.onFileChanged.bind(this));
+    watcher.onDidDelete(async (uri) => {
+      await this.parser.invalidateCache();
+      this.triggerDiagnosticUpdate(uri);
+    });
+  }
+}
+```
+
+## 14. Markdown プレビュー統合
+
+### 14.1 remark-directive プレビュー支援
+
+```typescript
+// package.jsonでmarkdown-it pluginとして統合
+export function activate(context: vscode.ExtensionContext) {
+  return {
+    extendMarkdownIt(md: any) {
+      // ディレクティブをHTMLにレンダリング
+      return md.use(directiveToHtmlPlugin);
+    },
+  };
+}
+
+function directiveToHtmlPlugin(md: any) {
+  md.renderer.rules.directive = function (tokens: any[], idx: number) {
+    const token = tokens[idx];
+    const directiveName = token.meta.name;
+    const attributes = token.meta.attributes || {};
+
+    switch (directiveName) {
+      case 'template':
+        return `<div class="mdck-template" data-id="${attributes.id}">`;
+      case 'tag':
+        return `<span class="mdck-tag" data-id="${attributes.id}">🏷️</span>`;
+      case 'result':
+        return `<div class="mdck-result">`;
+      default:
+        return '';
+    }
+  };
 }
 ```

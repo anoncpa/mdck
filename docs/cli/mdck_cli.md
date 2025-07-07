@@ -1,8 +1,8 @@
-# @mdck/cli 仕様詳細
+# @mdck/cli 仕様詳細（remark+remark-directive版）
 
 ## 1. 概要
 
-@mdck/cli は、拡張 Markdown 記法によるチェックリスト管理システムのコマンドラインインターフェースです。実行ロジックは@mdck/parser に 100%依存し、CLI 固有の機能として引数解析・実行制御・結果出力のみを担当します。
+@mdck/cli は、remarkとremark-directiveによる拡張Markdown記法を用いたチェックリスト管理システムのコマンドラインインターフェースです。実行ロジックは@mdck/parser に 100%依存し、CLI 固有の機能として引数解析・実行制御・結果出力のみを担当します。
 
 ## 2. 依存関係仕様
 
@@ -40,7 +40,8 @@
 │   │   ├── generate.ts       # generate コマンド
 │   │   ├── cache.ts          # cache コマンド
 │   │   ├── config.ts         # config コマンド
-│   │   └── validate.ts       # validate コマンド
+│   │   ├── validate.ts       # validate コマンド
+│   │   └── completion.ts     # completion コマンド
 │   ├── formatters/
 │   │   ├── console.ts        # コンソール出力
 │   │   ├── json.ts           # JSON出力
@@ -63,7 +64,7 @@
 
 ### 4.1 基本構文
 
-```basg
+```
 
 mdck <command> [options] [files...]
 
@@ -112,7 +113,8 @@ mdck lint [files...] [options]
 
 #### 使用例
 
-```bash
+```
+
 
 # 全ファイルをlint
 
@@ -133,27 +135,28 @@ mdck lint --fix
 # SARIF形式で出力（GitHub Actions用）
 
 mdck lint --format sarif > results.sarif
+
 ```
 
 #### 実装
 
 ```typescript
 // src/commands/lint.ts
-import { MdckParser } from "@mdck/parser";
-import { Command } from "commander";
-import { createFormatter } from "../formatters";
+import { MdckParser } from '@mdck/parser';
+import { Command } from 'commander';
+import { createFormatter } from '../formatters';
 
 export function createLintCommand(): Command {
-  return new Command("lint")
-    .description("Lint mdck files")
-    .argument("[files...]", "Files to lint")
-    .option("--fix", "Auto-fix issues")
-    .option("-r, --rules <rules>", "Specific rules to run")
-    .option("-s, --severity <level>", "Minimum severity level", "error")
-    .option("--exit-code <code>", "Exit code on error", "1")
+  return new Command('lint')
+    .description('Lint mdck files')
+    .argument('[files...]', 'Files to lint')
+    .option('--fix', 'Auto-fix issues')
+    .option('-r, --rules <rules>', 'Specific rules to run')
+    .option('-s, --severity <level>', 'Minimum severity level', 'error')
+    .option('--exit-code <code>', 'Exit code on error', '1')
     .action(async (files: string[], options) => {
       const parser = new MdckParser();
-      const formatter = createFormatter(options.format || "console");
+      const formatter = createFormatter(options.format || 'console');
 
       try {
         // 設定読み込み
@@ -162,14 +165,14 @@ export function createLintCommand(): Command {
         // ファイル検索
         const targetFiles = files.length > 0 ? files : await findMdckFiles();
 
-        // Lint実行
+        // Lint実行（remarkベース@mdck/parserを使用）
         const results = await lintFiles(parser, targetFiles, options);
 
         // 結果出力
         formatter.output(results);
 
         // 終了コード設定
-        const hasErrors = results.some((r) => r.severity === "error");
+        const hasErrors = results.some((r) => r.severity === 'error');
         if (hasErrors) {
           process.exit(parseInt(options.exitCode));
         }
@@ -184,7 +187,7 @@ async function lintFiles(parser: MdckParser, files: string[], options: any) {
   const allResults = [];
 
   for (const file of files) {
-    const content = await fs.readFile(file, "utf8");
+    const content = await fs.readFile(file, 'utf8');
     const results = await parser.lint(content, file);
 
     // ルールフィルタリング
@@ -203,10 +206,10 @@ async function lintFiles(parser: MdckParser, files: string[], options: any) {
 
 テンプレートからチェックリストを生成します。
 
-```
+```bash
 
 mdck generate <templateId> [options]
-mdck gen <templateId> [options]  \# エイリアス
+mdck gen <templateId> [options]  # エイリアス
 
 ```
 
@@ -220,8 +223,7 @@ mdck gen <templateId> [options]  \# エイリアス
 
 #### 使用例
 
-```
-
+```bash
 
 # テンプレートからチェックリスト生成
 
@@ -234,6 +236,7 @@ mdck generate server-maintenance -o checklist.md
 # ドライラン
 
 mdck generate server-maintenance --dry-run
+
 ```
 
 #### 実装
@@ -241,20 +244,20 @@ mdck generate server-maintenance --dry-run
 ```typescript
 // src/commands/generate.ts
 export function createGenerateCommand(): Command {
-  return new Command("generate")
-    .alias("gen")
-    .description("Generate checklist from template")
-    .argument("<templateId>", "Template ID to generate from")
-    .option("-o, --output <path>", "Output file path")
-    .option("-e, --expand", "Expand template references", true)
-    .option("--dry-run", "Show output without writing file")
+  return new Command('generate')
+    .alias('gen')
+    .description('Generate checklist from template')
+    .argument('<templateId>', 'Template ID to generate from')
+    .option('-o, --output <path>', 'Output file path')
+    .option('-e, --expand', 'Expand template references', true)
+    .option('--dry-run', 'Show output without writing file')
     .action(async (templateId: string, options) => {
       const parser = new MdckParser();
 
       try {
         await parser.loadConfig(options.config);
 
-        // テンプレート展開
+        // remarkベースのテンプレート展開
         const expandedContent = await parser.expandTemplate(templateId);
 
         if (options.dryRun) {
@@ -266,7 +269,7 @@ export function createGenerateCommand(): Command {
         const outputPath = options.output || generateOutputPath(templateId);
 
         // ファイル出力
-        await fs.writeFile(outputPath, expandedContent, "utf8");
+        await fs.writeFile(outputPath, expandedContent, 'utf8');
 
         console.log(chalk.green(`✓ Generated: ${outputPath}`));
       } catch (error) {
@@ -277,7 +280,7 @@ export function createGenerateCommand(): Command {
 }
 
 function generateOutputPath(templateId: string): string {
-  const date = new Date().toISOString().split("T")[0];
+  const date = new Date().toISOString().split('T');
   return `runs/${date}_${templateId}.md`;
 }
 ```
@@ -287,6 +290,7 @@ function generateOutputPath(templateId: string): string {
 キャッシュ管理を行います。
 
 ```bash
+
 mdck cache <action> [options]
 
 ```
@@ -302,21 +306,26 @@ mdck cache <action> [options]
 #### 使用例
 
 ```bash
-# キャッシュ再構築
+
+# キャッシュ再構築（remarkベースのAST解析）
+
 mdck cache refresh
 
 # キャッシュ削除
+
 mdck cache clear
 
 # キャッシュ情報表示
+
 mdck cache info
+
 ```
 
 ### 5.4 config コマンド
 
 設定ファイルの管理を行います。
 
-```
+```bash
 
 mdck config <action> [options]
 
@@ -333,14 +342,19 @@ mdck config <action> [options]
 #### 使用例
 
 ```bash
-# 初期設定生成
+
+# 初期設定生成（remarkベース設定）
+
 mdck config init
 
 # 設定表示
+
 mdck config show
 
 # 設定検証
+
 mdck config validate
+
 ```
 
 ### 5.5 validate コマンド
@@ -348,7 +362,9 @@ mdck config validate
 プロジェクト全体の検証を行います。
 
 ```bash
+
 mdck validate [options]
+
 ```
 
 #### オプション
@@ -364,12 +380,12 @@ mdck validate [options]
 
 ```typescript
 // src/formatters/console.ts
-import chalk from "chalk";
+import chalk from 'chalk';
 
 export class ConsoleFormatter {
   output(results: LintResult[]): void {
     if (results.length === 0) {
-      console.log(chalk.green("✓ No issues found"));
+      console.log(chalk.green('✓ No issues found'));
       return;
     }
 
@@ -396,27 +412,27 @@ export class ConsoleFormatter {
 
   private getSeverityIcon(severity: string): string {
     switch (severity) {
-      case "error":
-        return "✗";
-      case "warn":
-        return "⚠";
-      case "info":
-        return "ℹ";
+      case 'error':
+        return '✗';
+      case 'warn':
+        return '⚠';
+      case 'info':
+        return 'ℹ';
       default:
-        return "•";
+        return '- ';
     }
   }
 
   private getSeverityColor(severity: string): string {
     switch (severity) {
-      case "error":
-        return "red";
-      case "warn":
-        return "yellow";
-      case "info":
-        return "blue";
+      case 'error':
+        return 'red';
+      case 'warn':
+        return 'yellow';
+      case 'info':
+        return 'blue';
       default:
-        return "gray";
+        return 'gray';
     }
   }
 
@@ -429,7 +445,7 @@ export class ConsoleFormatter {
       parts.push(chalk.yellow(`${summary.warnings} warnings`));
     if (summary.infos > 0) parts.push(chalk.blue(`${summary.infos} infos`));
 
-    console.log(`Summary: ${parts.join(", ")}`);
+    console.log(`Summary: ${parts.join(', ')}`);
   }
 }
 ```
@@ -441,15 +457,15 @@ export class ConsoleFormatter {
 export class SarifFormatter {
   output(results: LintResult[]): void {
     const sarif = {
-      version: "2.1.0",
+      version: '2.1.0',
       $schema:
-        "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0.json",
+        'https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0.json',
       runs: [
         {
           tool: {
             driver: {
-              name: "mdck",
-              version: "1.0.0",
+              name: 'mdck',
+              version: '1.0.0',
               rules: this.generateRules(results),
             },
           },
@@ -478,45 +494,103 @@ export class SarifFormatter {
 
   private mapSeverity(severity: string): string {
     switch (severity) {
-      case "error":
-        return "error";
-      case "warn":
-        return "warning";
-      case "info":
-        return "note";
+      case 'error':
+        return 'error';
+      case 'warn':
+        return 'warning';
+      case 'info':
+        return 'note';
       default:
-        return "note";
+        return 'note';
     }
   }
 }
 ```
 
-## 7. メインエントリポイント
+### 7.2 bash 補完スクリプト生成
 
-### 7.1 CLI 構造
+```typescript
+function generateBashCompletion(): string {
+  return `
+_mdck_completion() {
+local cur prev opts
+COMPREPLY=()
+cur="${COMP_WORDS[COMP_CWORD]}"
+prev="${COMP_WORDS[COMP_CWORD - 1]}"
+
+    case ${COMP_CWORD} in
+        1)
+            opts="lint generate gen cache config validate completion"
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        2)
+            case ${prev} in
+                generate|gen)
+                    # テンプレートID補完（remarkベースキャッシュから）
+                    local templates=$(mdck _completion-data templates 2>/dev/null)
+                    COMPREPLY=( $(compgen -W "${templates}" -- ${cur}) )
+                    return 0
+                    ;;
+                cache)
+                    opts="refresh clear info"
+                    COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                    return 0
+                    ;;
+                config)
+                    opts="init show validate"
+                    COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                    return 0
+                    ;;
+                completion)
+                    opts="bash zsh fish"
+                    COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+                    return 0
+                    ;;
+            esac
+            ;;
+        *)
+            # ファイル補完（.mdファイルのみ）
+            COMPREPLY=( $(compgen -f -X '!*.md' -- ${cur}) )
+            return 0
+            ;;
+    esac
+    }
+    complete -F _mdck_completion mdck
+`;
+}
+```
+
+## 8. メインエントリポイント
+
+### 8.1 CLI 構造
 
 ```typescript
 // src/index.ts
-import { Command } from "commander";
-import { createLintCommand } from "./commands/lint";
-import { createGenerateCommand } from "./commands/generate";
-import { createCacheCommand } from "./commands/cache";
-import { createConfigCommand } from "./commands/config";
-import { createValidateCommand } from "./commands/validate";
+import { Command } from 'commander';
+import { createLintCommand } from './commands/lint';
+import { createGenerateCommand } from './commands/generate';
+import { createCacheCommand } from './commands/cache';
+import { createConfigCommand } from './commands/config';
+import { createValidateCommand } from './commands/validate';
+import {
+  createCompletionCommand,
+  createCompletionDataCommand,
+} from './commands/completion';
 
 const program = new Command();
 
 program
-  .name("mdck")
-  .description("CLI for mdck (Markdown Check List)")
-  .version("1.0.0");
+  .name('mdck')
+  .description('CLI for mdck (Markdown Check List)')
+  .version('1.0.0');
 
 // グローバルオプション
 program
-  .option("-c, --config <path>", "Config file path", ".mdck/config.yml")
-  .option("-f, --format <format>", "Output format", "console")
-  .option("-v, --verbose", "Verbose output")
-  .option("-q, --quiet", "Quiet mode");
+  .option('-c, --config <path>', 'Config file path', '.mdck/config.yml')
+  .option('-f, --format <format>', 'Output format', 'console')
+  .option('-v, --verbose', 'Verbose output')
+  .option('-q, --quiet', 'Quiet mode');
 
 // サブコマンド登録
 program.addCommand(createLintCommand());
@@ -524,13 +598,15 @@ program.addCommand(createGenerateCommand());
 program.addCommand(createCacheCommand());
 program.addCommand(createConfigCommand());
 program.addCommand(createValidateCommand());
+program.addCommand(createCompletionCommand());
+program.addCommand(createCompletionDataCommand());
 
 // エラーハンドリング
 program.exitOverride((err) => {
-  if (err.code === "commander.help") {
+  if (err.code === 'commander.help') {
     process.exit(0);
   }
-  if (err.code === "commander.version") {
+  if (err.code === 'commander.version') {
     process.exit(0);
   }
   process.exit(1);
@@ -539,131 +615,81 @@ program.exitOverride((err) => {
 export default program;
 ```
 
-### 7.2 実行ファイル
+# remarkベースのエラー
 
-```javascript
-#!/usr/bin/env node
-// bin/mdck.js
-import program from "../dist/index.js";
+Error: Directive syntax error at line 15, column 3
+Expected: ::template{#id=server-maintenance}
+Found: ::Template{id=server-maintenance}
+Fix: Use lowercase directive name and #id attribute
 
-program.parse();
-```
+````
 
-## 8. 終了コード仕様
+## 10. CI/CD 連携
 
-| 終了コード | 意味           | 条件                    |
-| :--------- | :------------- | :---------------------- |
-| `0`        | 成功           | エラーなし              |
-| `1`        | Lint エラー    | error レベルの問題あり  |
-| `2`        | 設定エラー     | config.yml 不正など     |
-| `3`        | ファイルエラー | ファイル読み書き失敗    |
-| `4`        | パーサーエラー | @mdck/parser でのエラー |
-
-```typescript
-// src/utils/exit-codes.ts
-export const ExitCodes = {
-  SUCCESS: 0,
-  LINT_ERROR: 1,
-  CONFIG_ERROR: 2,
-  FILE_ERROR: 3,
-  PARSER_ERROR: 4,
-} as const;
-```
-
-## 9. CI/CD 連携
-
-### 9.1 GitHub Actions 例
+### 10.1 GitHub Actions 例
 
 ```yaml
+
 name: mdck-check
 on: [push, pull_request]
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "18"
-      - run: npm install -g @mdck/cli
-      - run: mdck lint --format sarif > results.sarif
-      - uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: results.sarif
-```
+lint:
+runs-on: ubuntu-latest
+steps:
+- uses: actions/checkout@v4
+- uses: actions/setup-node@v4
+with:
+node-version: "18"
+- run: npm install -g @mdck/cli
+- run: mdck lint --format sarif > results.sarif
+- uses: github/codeql-action/upload-sarif@v3
+with:
+sarif_file: results.sarif
 
-### 9.2 pre-commit hook 例
+````
+
+### 10.2 設定例
 
 ```bash
-#!/bin/sh
-# .git/hooks/pre-commit
-npx mdck lint --staged --exit-code 1
+
+
+# CI用の設定初期化（remarkベース）
+
+mdck config init --preset ci
+
+# テンプレート補完付きの生成
+
+mdck generate <TAB>  # server-maintenance, security-audit, deploy-checklist
+
+# 自動修正付きLint
+
+mdck lint --fix --format console
 ```
 
-## 10. ログ・デバッグ機能
-
-### 10.1 ログレベル
-
-```typescript
-// src/utils/logger.ts
-export enum LogLevel {
-  ERROR = 0,
-  WARN = 1,
-  INFO = 2,
-  DEBUG = 3,
-}
-
-export class Logger {
-  constructor(private level: LogLevel) {}
-
-  error(message: string): void {
-    if (this.level >= LogLevel.ERROR) {
-      console.error(chalk.red(`[ERROR] ${message}`));
-    }
-  }
-
-  warn(message: string): void {
-    if (this.level >= LogLevel.WARN) {
-      console.warn(chalk.yellow(`[WARN] ${message}`));
-    }
-  }
-
-  info(message: string): void {
-    if (this.level >= LogLevel.INFO) {
-      console.log(chalk.blue(`[INFO] ${message}`));
-    }
-  }
-
-  debug(message: string): void {
-    if (this.level >= LogLevel.DEBUG) {
-      console.log(chalk.gray(`[DEBUG] ${message}`));
-    }
-  }
-}
 ```
 
 ## 11. パフォーマンス仕様
 
-| 項目         | 目標値  | 測定条件             |
-| :----------- | :------ | :------------------- |
-| 起動時間     | < 200ms | cold start           |
-| Lint 実行    | < 3s    | 100 ファイル         |
-| 生成処理     | < 1s    | テンプレート展開込み |
-| メモリ使用量 | < 50MB  | 通常操作時           |
+| 項目         | 目標値  | 測定条件                     |
+| :----------- | :------ | :--------------------------- |
+| 起動時間     | < 200ms | cold start                   |
+| Lint 実行    | < 3s    | 100 ファイル（remarkベース） |
+| 生成処理     | < 1s    | テンプレート展開込み         |
+| メモリ使用量 | < 50MB  | 通常操作時                   |
+| 補完応答     | < 100ms | テンプレートID補完           |
 
 ## 12. 使用例
 
 ### 12.1 開発時の使用
 
-```bash
+```
 
-
-# プロジェクト初期化
+# プロジェクト初期化（remarkベース設定）
 
 mdck config init
 
-# 開発中のlint
+# 開発中のlint（ディレクティブ記法チェック）
 
 mdck lint --fix
 
@@ -671,15 +697,20 @@ mdck lint --fix
 
 mdck gen server-maintenance
 
-# キャッシュ更新
+# キャッシュ更新（remarkベースAST）
 
 mdck cache refresh
+
+# シェル補完セットアップ
+
+mdck completion bash > ~/.bash_completion.d/mdck
 
 ```
 
 ### 12.2 CI/CD での使用
 
-```bash
+```
+
 # CI用lint（SARIF出力）
 
 mdck lint --format sarif --severity error
@@ -692,6 +723,10 @@ mdck lint --format junit --exit-code 1
 
 mdck config validate
 
+# テンプレートの存在確認
+
+mdck validate --check-refs
+
 ```
 
-この仕様により、@mdck/cli は@mdck/parser の機能を最大限活用しつつ、コマンドライン操作に特化した軽量で使いやすいツールとして機能します。
+```
