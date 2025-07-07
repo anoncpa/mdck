@@ -1,5 +1,6 @@
 // packages/parser/src/run.ts
 import { MdckParser } from './index';
+import { runTemplateFeatureTests } from './test-template-features';
 
 /**
  * パーサーの動作確認に使用するマークダウンのサンプルテキスト。
@@ -58,5 +59,22 @@ function main() {
   console.log('--- MdckParser Execution End ---');
 }
 
-// スクリプトとして実行された場合にmain関数を呼び出す
-main();
+// 既存のmain関数の後に追加
+async function testTemplateFeatures() {
+  console.log('\n' + '='.repeat(60));
+  console.log('テンプレート機能のテスト実行');
+  console.log('='.repeat(60));
+
+  await runTemplateFeatureTests();
+}
+
+// main関数の後に追加
+async function runAll() {
+  main(); // 既存の基本テスト
+  await testTemplateFeatures(); // 新しいテンプレート機能テスト
+}
+
+// スクリプトとして実行された場合
+if (require.main === module) {
+  runAll().catch(console.error);
+}
