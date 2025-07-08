@@ -31,6 +31,8 @@ export interface LintResult {
   readonly column?: number;
   /** 自動修正可能かどうか */
   readonly fixable: boolean;
+  /** ファイルパス（任意） */
+  readonly filePath?: string;
   /** 追加のコンテキスト情報 */
   readonly details?: Record<string, unknown>;
 }
