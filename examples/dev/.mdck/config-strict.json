@@ -1,0 +1,56 @@
+{
+  "lint": {
+    "rules": {
+      "M002": {
+        "enabled": true,
+        "severity": "error"
+      },
+      "M003": {
+        "enabled": true,
+        "severity": "error"
+      },
+      "M004": {
+        "enabled": true,
+        "severity": "error"
+      }
+    },
+    "cache": true,
+    "autoFix": false,
+    "failOnWarning": true,
+    "maxWarnings": 0
+  },
+  "parser": {
+    "templatePaths": [
+      "./templates/**/*.md"
+    ],
+    "excludePatterns": [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/.git/**",
+      "**/tmp_*",
+      "**/.*"
+    ],
+    "maxDepth": 5,
+    "enableExternalReferences": false,
+    "strictMode": true
+  },
+  "output": {
+    "format": "json",
+    "color": false,
+    "verbose": true,
+    "quiet": false,
+    "logLevel": "info"
+  },
+  "validation": {
+    "requireMandatoryTags": true,
+    "requireResultSections": true,
+    "allowCustomItems": false,
+    "enforceTagIds": true
+  },
+  "project": {
+    "name": "Development Checklists (Strict Mode)",
+    "version": "1.0.0",
+    "description": "Strict configuration for CI/CD environments",
+    "environment": "production"
+  }
+}

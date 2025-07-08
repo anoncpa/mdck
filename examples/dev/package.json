@@ -1,0 +1,49 @@
+{
+  "name": "mdck-dev-examples",
+  "version": "1.0.0",
+  "description": "mdck development checklist examples",
+  "scripts": {
+    "setup": "scripts/setup-config.sh",
+    "setup:dev": "scripts/setup-config.sh development",
+    "setup:strict": "scripts/setup-config.sh strict",
+    "setup:default": "scripts/setup-config.sh default",
+    "lint": "mdck lint",
+    "lint:strict": "mdck lint --config .mdck/config-strict.json",
+    "lint:dev": "mdck lint --config .mdck/config-development.json",
+    "lint:fix": "mdck lint --fix",
+    "validate": "mdck validate",
+    "config:show": "mdck config --list",
+    "config:reset": "rm -f .mdck/config.json && npm run setup:default",
+    "cache:clear": "mdck cache --clear",
+    "cache:rebuild": "mdck cache --rebuild",
+    "test:templates": "npm run lint && npm run validate",
+    "ci": "npm run setup:strict && npm run test:templates"
+  },
+  "keywords": [
+    "mdck",
+    "markdown",
+    "checklist",
+    "template",
+    "development",
+    "examples"
+  ],
+  "author": "mdck team",
+  "license": "MIT",
+  "devDependencies": {
+    "@mdck/cli": "^1.0.0",
+    "@mdck/parser": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "mdck": {
+    "configPath": ".mdck/config.json",
+    "templatePaths": [
+      "templates/**/*.md"
+    ],
+    "examplePaths": [
+      "*.md",
+      "!README.md"
+    ]
+  }
+}
