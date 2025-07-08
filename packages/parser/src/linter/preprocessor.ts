@@ -11,6 +11,7 @@ import type {
 } from '../shared/lint-preprocessor-types';
 import type {
   TemplateDefinitions,
+  TemplateDefinition,
   TemplateReference,
 } from '../shared/template-types';
 import type { Directive } from '../shared/types';

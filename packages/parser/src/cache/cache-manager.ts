@@ -89,7 +89,7 @@ export class CacheManager {
       const changes = await this.detectFileChanges(currentCache, filesToProcess);
 
       // 並列処理でファイルを更新
-      const concurrency = Math.min(this.config.maxConcurrency, filesToProcess.length);
+      const concurrency = Math.min(this.config.maxConcurrency, Math.max(1, changes.length));
       const chunks = this.chunkArray(changes, concurrency);
 
       for (const chunk of chunks) {
@@ -336,10 +336,20 @@ export class CacheManager {
     switch (change.changeType) {
       case 'added':
       case 'modified':
+        // 既存のテンプレート定義を削除（modifiedの場合）
+        if (change.changeType === 'modified') {
+          const oldMetadata = cacheData.files.get(change.filePath);
+          if (oldMetadata) {
+            for (const templateId of oldMetadata.templateIds) {
+              cacheData.templates.delete(templateId);
+            }
+          }
+        }
+
         const metadata = await this.metadataExtractor.extractFileMetadata(change.filePath);
         cacheData.files.set(change.filePath, metadata);
 
-        // テンプレート定義を更新
+        // 新しいテンプレート定義を追加
         if (metadata.templateIds.length > 0) {
           const ast = await this.parseFile(change.filePath);
           const templateDefs = await this.metadataExtractor.extractTemplateDefinitions(change.filePath, ast);
@@ -508,6 +518,10 @@ export class CacheManager {
   }
 
   private chunkArray<T>(array: T[], chunkSize: number): T[][] {
+    if (chunkSize <= 0) {
+      return array.length > 0 ? [array] : [];
+    }
+    
     const chunks: T[][] = [];
     for (let i = 0; i < array.length; i += chunkSize) {
       chunks.push(array.slice(i, i + chunkSize));
