@@ -1,8 +1,10 @@
-// packages/cli/tsconfig.json
 {
   "extends": "@mdck/tsconfig/base.json",
+  "compilerOptions": {
+    "outDir": "dist"
+  },
   "include": [
-    "src",
+    "src/**/*",
     "vitest.config.ts"
   ],
   "exclude": [

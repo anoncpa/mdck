@@ -1,0 +1,28 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": 1751979222108,
+  "projectRoot": "/Users/kiku28/Documents/GitHub/mdck/packages/cli",
+  "files": {
+    "__type": "Map",
+    "entries": []
+  },
+  "templates": {
+    "__type": "Map",
+    "entries": []
+  },
+  "dependencies": {
+    "nodes": {
+      "__type": "Set",
+      "values": []
+    },
+    "edges": {
+      "__type": "Map",
+      "entries": []
+    },
+    "reverseEdges": {
+      "__type": "Map",
+      "entries": []
+    },
+    "cycles": []
+  }
+}
