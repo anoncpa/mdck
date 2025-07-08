@@ -4,7 +4,7 @@
 
 ## 📁 設定ファイル一覧
 
-### config.json (デフォルト設定)
+### config.yml (デフォルト設定)
 標準的な開発環境向けの設定です。バランスの取れたルール設定で、ほとんどのプロジェクトに適用できます。
 
 **特徴:**
@@ -13,7 +13,7 @@
 - カラー出力有効
 - 外部参照サポート
 
-### config-strict.json (厳格設定)
+### config-strict.yml (厳格設定)
 CI/CD環境や本番環境向けの厳格な設定です。品質を重視し、警告でもビルドを失敗させます。
 
 **特徴:**
@@ -22,7 +22,7 @@ CI/CD環境や本番環境向けの厳格な設定です。品質を重視し、
 - 外部参照無効（セキュリティ重視）
 - JSON出力（CI/CD連携向け）
 
-### config-development.json (開発設定)
+### config-development.yml (開発設定)
 開発者向けの緩い設定です。開発効率を重視し、自動修正機能も有効にしています。
 
 **特徴:**
@@ -123,17 +123,17 @@ CI/CD環境や本番環境向けの厳格な設定です。品質を重視し、
 ## 🚀 使用方法
 
 ### 1. 設定ファイルの選択
-プロジェクトに適した設定ファイルを選択し、`.mdck/config.json`としてコピーします。
+プロジェクトに適した設定ファイルを選択し、`.mdck/config.yml`としてコピーします。
 
 ```bash
 # デフォルト設定を使用
-cp .mdck/config.json .mdck/config.json
+cp .mdck/config.yml .mdck/config.yml
 
 # 厳格設定を使用（CI/CD環境）
-cp .mdck/config-strict.json .mdck/config.json
+cp .mdck/config-strict.yml .mdck/config.yml
 
 # 開発設定を使用（ローカル開発）
-cp .mdck/config-development.json .mdck/config.json
+cp .mdck/config-development.yml .mdck/config.yml
 ```
 
 ### 2. CLIでの設定指定
@@ -141,7 +141,7 @@ cp .mdck/config-development.json .mdck/config.json
 
 ```bash
 # 特定の設定ファイルを使用
-mdck lint --config .mdck/config-strict.json
+mdck lint --config .mdck/config-strict.yml
 
 # 設定値を一時的に上書き
 mdck lint --rules M002,M003 --format json
@@ -188,10 +188,10 @@ mdck config lint.autoFix true
 ```bash
 # 環境別設定ファイル
 .mdck/
-├── config.json              # デフォルト
-├── config.development.json  # 開発環境
-├── config.staging.json      # ステージング環境
-└── config.production.json   # 本番環境
+├── config.yml              # デフォルト
+├── config-development.yml  # 開発環境
+├── config-staging.yml      # ステージング環境
+└── config-production.yml   # 本番環境
 
 # 環境変数での切り替え
 export MDCK_CONFIG=".mdck/config.${NODE_ENV}.json"

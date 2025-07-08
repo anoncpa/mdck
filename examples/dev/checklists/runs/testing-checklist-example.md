@@ -2,7 +2,7 @@
 
 ## ユーザー認証機能のテスト
 
-::template{id="testing-checklist" src="./templates/common.md"}
+::template{id="testing-checklist" src="../templates/common.md"}
 
 ## 認証機能固有のテスト項目
 

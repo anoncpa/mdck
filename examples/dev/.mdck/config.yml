@@ -1,0 +1,41 @@
+# mdck デフォルト設定
+# 標準的な開発環境向けの設定
+
+lint:
+  rules:
+    M002:
+      enabled: true
+      severity: error
+    M003:
+      enabled: true
+      severity: error
+    M004:
+      enabled: true
+      severity: error
+  cache: true
+  autoFix: false
+
+parser:
+  templatePaths:
+    - "./checklists/templates/**/*.md"
+    - "../shared-templates/**/*.md"
+  excludePatterns:
+    - "**/node_modules/**"
+    - "**/dist/**"
+    - "**/.git/**"
+    - "**/tmp_*"
+  maxDepth: 10
+  enableExternalReferences: true
+
+output:
+  format: console
+  color: true
+  verbose: false
+  quiet: false
+
+project:
+  name: "Development Checklists"
+  version: "1.0.0"
+  description: "mdck example project for development process checklists"
+
+cache: ./.mdck/.cache

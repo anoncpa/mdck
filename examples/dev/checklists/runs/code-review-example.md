@@ -2,7 +2,7 @@
 
 ## PR #123: ユーザー認証API実装
 
-::template{id="code-review-checklist" src="./templates/common.md"}
+::template{id="code-review-checklist" src="../templates/common.md"}
 
 ## このPR固有のチェック項目
 

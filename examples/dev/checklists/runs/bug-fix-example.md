@@ -2,7 +2,7 @@
 
 ## Bug #456: ログイン後にセッションが即座に切れる問題
 
-::template{id="bug-investigation" src="./templates/bug-fix.md"}
+::template{id="bug-investigation" src="../templates/bug-fix.md"}
 
 ## このバグ固有の調査項目
 
@@ -44,7 +44,7 @@ Redisクラスターの設定で、セッションデータが異なるノード
 
 ---
 
-::template{id="bug-fix-implementation" src="./templates/bug-fix.md"}
+::template{id="bug-fix-implementation" src="../templates/bug-fix.md"}
 
 ## このバグ固有の修正・テスト項目
 

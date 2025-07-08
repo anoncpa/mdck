@@ -2,7 +2,7 @@
 
 ## リリース v2.1.0: ユーザー認証機能追加
 
-::template{id="deployment-checklist" src="./templates/common.md"}
+::template{id="deployment-checklist" src="../templates/common.md"}
 
 ## このリリース固有のチェック項目
 

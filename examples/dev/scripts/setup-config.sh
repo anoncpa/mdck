@@ -201,20 +201,20 @@ main() {
     local source_config=""
     case "$environment" in
         development)
-            source_config="$config_dir/config-development.json"
+            source_config="$config_dir/config-development.yml"
             ;;
         strict)
-            source_config="$config_dir/config-strict.json"
+            source_config="$config_dir/config-strict.yml"
             ;;
         default)
-            source_config="$config_dir/config.json"
+            source_config="$config_dir/config.yml"
             ;;
         *)
             error_exit "サポートされていない環境: $environment"
             ;;
     esac
     
-    local target_config="$config_dir/config.json"
+    local target_config="$config_dir/config.yml"
     
     # 設定ファイルの存在確認
     check_config_exists "$source_config"

@@ -8,12 +8,12 @@
     "setup:strict": "scripts/setup-config.sh strict",
     "setup:default": "scripts/setup-config.sh default",
     "lint": "mdck lint",
-    "lint:strict": "mdck lint --config .mdck/config-strict.json",
-    "lint:dev": "mdck lint --config .mdck/config-development.json",
+    "lint:strict": "mdck lint --config .mdck/config-strict.yml",
+    "lint:dev": "mdck lint --config .mdck/config-development.yml",
     "lint:fix": "mdck lint --fix",
     "validate": "mdck validate",
     "config:show": "mdck config --list",
-    "config:reset": "rm -f .mdck/config.json && npm run setup:default",
+    "config:reset": "rm -f .mdck/config.yml && npm run setup:default",
     "cache:clear": "mdck cache --clear",
     "cache:rebuild": "mdck cache --rebuild",
     "test:templates": "npm run lint && npm run validate",
@@ -37,12 +37,12 @@
     "node": ">=18.0.0"
   },
   "mdck": {
-    "configPath": ".mdck/config.json",
+    "configPath": ".mdck/config.yml",
     "templatePaths": [
-      "templates/**/*.md"
+      "checklists/templates/**/*.md"
     ],
     "examplePaths": [
-      "*.md",
+      "checklists/runs/*.md",
       "!README.md"
     ]
   }

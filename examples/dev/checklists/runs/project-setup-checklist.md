@@ -2,7 +2,7 @@
 
 ## 新規機能開発: ユーザー認証機能
 
-::template{id="feature-planning" src="./templates/feature-development.md"}
+::template{id="feature-planning" src="../templates/feature-development.md"}
 
 ## 追加のプロジェクト固有チェック項目
 
