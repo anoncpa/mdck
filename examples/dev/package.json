@@ -7,15 +7,15 @@
     "setup:dev": "scripts/setup-config.sh development",
     "setup:strict": "scripts/setup-config.sh strict",
     "setup:default": "scripts/setup-config.sh default",
-    "lint": "mdck lint",
-    "lint:strict": "mdck lint --config .mdck/config-strict.yml",
-    "lint:dev": "mdck lint --config .mdck/config-development.yml",
-    "lint:fix": "mdck lint --fix",
-    "validate": "mdck validate",
-    "config:show": "mdck config --list",
+    "lint": "node ../../packages/cli/dist/index.mjs lint",
+    "lint:strict": "node ../../packages/cli/dist/index.mjs lint --config .mdck/config-strict.yml",
+    "lint:dev": "node ../../packages/cli/dist/index.mjs lint --config .mdck/config-development.yml",
+    "lint:fix": "node ../../packages/cli/dist/index.mjs lint --fix",
+    "validate": "node ../../packages/cli/dist/index.mjs validate",
+    "config:show": "node ../../packages/cli/dist/index.mjs config --list",
     "config:reset": "rm -f .mdck/config.yml && npm run setup:default",
-    "cache:clear": "mdck cache --clear",
-    "cache:rebuild": "mdck cache --rebuild",
+    "cache:clear": "node ../../packages/cli/dist/index.mjs cache --clear",
+    "cache:rebuild": "node ../../packages/cli/dist/index.mjs cache --rebuild",
     "test:templates": "npm run lint && npm run validate",
     "ci": "npm run setup:strict && npm run test:templates"
   },
@@ -30,8 +30,8 @@
   "author": "mdck team",
   "license": "MIT",
   "devDependencies": {
-    "@mdck/cli": "^1.0.0",
-    "@mdck/parser": "^1.0.0"
+    "@mdck/cli": "file:../../packages/cli",
+    "@mdck/parser": "file:../../packages/parser"
   },
   "engines": {
     "node": ">=18.0.0"

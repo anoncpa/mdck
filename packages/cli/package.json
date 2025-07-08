@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "bin": {
-    "mdck": "./dist/index.js"
+    "mdck": "./dist/index.mjs"
   },
   "scripts": {
     "build": "tsup src/index.ts --format esm --clean",
