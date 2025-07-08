@@ -4,6 +4,7 @@ import { extractMdckDirectives } from './core/directive-extractor';
 import { TemplateExpander } from './core/template-expander';
 import { FileResolver } from './core/file-resolver';
 import { RuleEngine } from './linter/rule-engine';
+import { CacheManager } from './cache/cache-manager';
 import {
   ParseResult,
   MdckDirective,
@@ -15,6 +16,9 @@ import {
   LintReport,
   LintConfig,
   LintContext,
+  CacheData,
+  CacheManagerConfig,
+  CacheUpdateResult,
 } from './shared/types';
 
 // 公開する型を再エクスポート
@@ -29,11 +33,15 @@ export type {
   LintReport,
   LintConfig,
   LintContext,
+  CacheData,
+  CacheManagerConfig,
+  CacheUpdateResult,
 };
 
 // 公開するクラスを再エクスポート
 export { FileResolver };
 export { RuleEngine };
+export { CacheManager };
 
 /**
  * mdck (Markdown Check List) のためのコアパーサー。
@@ -43,6 +51,7 @@ export class MdckParser {
   private readonly templateExpander: TemplateExpander;
   private readonly fileResolver: FileResolver;
   private readonly ruleEngine: RuleEngine;
+  private cacheManager?: CacheManager;
 
   constructor() {
     this.fileResolver = new FileResolver();
@@ -159,5 +168,54 @@ export class MdckParser {
    */
   public clearFileCache(): void {
     this.fileResolver.clearCache();
+  }
+
+  /**
+   * キャッシュマネージャーを初期化
+   */
+  public initializeCache(projectRoot: string, config?: Partial<CacheManagerConfig>): void {
+    this.cacheManager = new CacheManager({
+      projectRoot,
+      ...config,
+    });
+  }
+
+  /**
+   * キャッシュデータを取得
+   */
+  public async getCacheData(): Promise<CacheData | null> {
+    if (!this.cacheManager) {
+      return null;
+    }
+    return await this.cacheManager.getCacheData();
+  }
+
+  /**
+   * キャッシュを更新
+   */
+  public async refreshCache(targetFiles?: string[]): Promise<CacheUpdateResult | null> {
+    if (!this.cacheManager) {
+      return null;
+    }
+    return await this.cacheManager.refreshCache(targetFiles);
+  }
+
+  /**
+   * キャッシュを再構築
+   */
+  public async rebuildCache(): Promise<CacheData | null> {
+    if (!this.cacheManager) {
+      return null;
+    }
+    return await this.cacheManager.rebuildCache();
+  }
+
+  /**
+   * キャッシュをクリア
+   */
+  public async clearCache(): Promise<void> {
+    if (this.cacheManager) {
+      await this.cacheManager.clearCache();
+    }
   }
 }

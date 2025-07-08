@@ -1,0 +1,334 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": 1751979247086,
+  "projectRoot": "/Users/kiku28/Documents/GitHub/mdck",
+  "files": {
+    "__type": "Map",
+    "entries": [
+      [
+        "/Users/kiku28/Documents/GitHub/mdck/README.md",
+        {
+          "filePath": "/Users/kiku28/Documents/GitHub/mdck/README.md",
+          "size": 87,
+          "mtime": 1751885425567,
+          "hash": "f9fb5c67c1783c71c3be52c8e80691fa44ad846df6f30fc0e462bc549844ccb8",
+          "templateIds": [],
+          "referenceIds": [],
+          "externalReferences": []
+        }
+      ],
+      [
+        "/Users/kiku28/Documents/GitHub/mdck/docs/cli/mdck_cli_completion.md",
+        {
+          "filePath": "/Users/kiku28/Documents/GitHub/mdck/docs/cli/mdck_cli_completion.md",
+          "size": 11539,
+          "mtime": 1751906593322,
+          "hash": "291b84d37d77751a88056c29a8c7b517343a17ed164816084355b9ada37dbf8e",
+          "templateIds": [],
+          "referenceIds": [],
+          "externalReferences": []
+        }
+      ],
+      [
+        "/Users/kiku28/Documents/GitHub/mdck/docs/cli/mdck_cli.md",
+        {
+          "filePath": "/Users/kiku28/Documents/GitHub/mdck/docs/cli/mdck_cli.md",
+          "size": 18601,
+          "mtime": 1751906593321,
+          "hash": "defb2285585dce68f3f14c25c06685348ffaab8d3fad86b0575b9e25578637c7",
+          "templateIds": [],
+          "referenceIds": [],
+          "externalReferences": []
+        }
+      ],
+      [
+        "/Users/kiku28/Documents/GitHub/mdck/docs/parser/mdck_cache.md",
+        {
+          "filePath": "/Users/kiku28/Documents/GitHub/mdck/docs/parser/mdck_cache.md",
+          "size": 21618,
+          "mtime": 1751906593322,
+          "hash": "e02738d7b7dc875f03c9d32d1634f1148bc10d7b7cde52b245bb67da8a2abe23",
+          "templateIds": [],
+          "referenceIds": [],
+          "externalReferences": []
+        }
+      ],
+      [
+        "/Users/kiku28/Documents/GitHub/mdck/docs/parser/mdck_template.md",
+        {
+          "filePath": "/Users/kiku28/Documents/GitHub/mdck/docs/parser/mdck_template.md",
+          "size": 4975,
+          "mtime": 1751970286267,
+          "hash": "d88afc950e761fcb94e7c294b558f8cda65af0827d69469de639d9bbf0297de4",
+          "templateIds": [],
+          "referenceIds": [],
+          "externalReferences": []
+        }
+      ],
+      [
+        "/Users/kiku28/Documents/GitHub/mdck/docs/parser/mdck_linter.md",
+        {
+          "filePath": "/Users/kiku28/Documents/GitHub/mdck/docs/parser/mdck_linter.md",
+          "size": 17252,
+          "mtime": 1751970387825,
+          "hash": "1c1296e0f7b0695a58ae48e544c94300a231c4d3a258f15ce75de127fa705cd3",
+          "templateIds": [],
+          "referenceIds": [],
+          "externalReferences": []
+        }
+      ],
+      [
+        "/Users/kiku28/Documents/GitHub/mdck/docs/parser/mdck_parser.md",
+        {
+          "filePath": "/Users/kiku28/Documents/GitHub/mdck/docs/parser/mdck_parser.md",
+          "size": 26261,
+          "mtime": 1751970302874,
+          "hash": "740c1c1638644e964c8495c8e844c77755acf849c73423aa2efdb7f72af2feca",
+          "templateIds": [],
+          "referenceIds": [],
+          "externalReferences": []
+        }
+      ],
+      [
+        "/Users/kiku28/Documents/GitHub/mdck/docs/vscode-ext/mdck_vscode.md",
+        {
+          "filePath": "/Users/kiku28/Documents/GitHub/mdck/docs/vscode-ext/mdck_vscode.md",
+          "size": 16502,
+          "mtime": 1751906593323,
+          "hash": "1436a64e7fc718478d35ffd293cd3fef181fc0cb82e81958c3981bf5f2062e58",
+          "templateIds": [],
+          "referenceIds": [],
+          "externalReferences": []
+        }
+      ],
+      [
+        "/Users/kiku28/Documents/GitHub/mdck/docs/仕様まとめ.md",
+        {
+          "filePath": "/Users/kiku28/Documents/GitHub/mdck/docs/仕様まとめ.md",
+          "size": 10380,
+          "mtime": 1751970154027,
+          "hash": "56461f814c15fb10f1fc6255d61d37ff70a95d1e812184f6db0d35e7d2a35021",
+          "templateIds": [],
+          "referenceIds": [],
+          "externalReferences": []
+        }
+      ],
+      [
+        "/Users/kiku28/Documents/GitHub/mdck/packages/parser/CACHE_IMPLEMENTATION_PLAN.md",
+        {
+          "filePath": "/Users/kiku28/Documents/GitHub/mdck/packages/parser/CACHE_IMPLEMENTATION_PLAN.md",
+          "size": 2553,
+          "mtime": 1751974758329,
+          "hash": "4d3e15f36dc197f3ce5daa4065e678f8bf61b252e5e3507b5bbcc2c33e4e885e",
+          "templateIds": [],
+          "referenceIds": [],
+          "externalReferences": []
+        }
+      ],
+      [
+        "/Users/kiku28/Documents/GitHub/mdck/packages/parser/src/__tests__/fixtures/external-test/external1.md",
+        {
+          "filePath": "/Users/kiku28/Documents/GitHub/mdck/packages/parser/src/__tests__/fixtures/external-test/external1.md",
+          "size": 59,
+          "mtime": 1751974759520,
+          "hash": "d7fc8bc48061a91e914a5cb1c6b7fe19f42b879af9565bc43137647844d11aea",
+          "templateIds": [
+            "duplicate"
+          ],
+          "referenceIds": [],
+          "externalReferences": []
+        }
+      ],
+      [
+        "/Users/kiku28/Documents/GitHub/mdck/tmp_rovodev_template.md",
+        {
+          "filePath": "/Users/kiku28/Documents/GitHub/mdck/tmp_rovodev_template.md",
+          "size": 137,
+          "mtime": 1751976506215,
+          "hash": "dd805dba89a389d9780e7d4683ca24d17f192c5b5e0669171a30e7ba83e3817c",
+          "templateIds": [],
+          "referenceIds": [
+            "hello-world"
+          ],
+          "externalReferences": []
+        }
+      ],
+      [
+        "/Users/kiku28/Documents/GitHub/mdck/packages/parser/src/__tests__/fixtures/external-test/external2.md",
+        {
+          "filePath": "/Users/kiku28/Documents/GitHub/mdck/packages/parser/src/__tests__/fixtures/external-test/external2.md",
+          "size": 59,
+          "mtime": 1751974759521,
+          "hash": "b6d5e4562df8109818d0c23ce2040f8a28b0a5b706f8d3cee974001bd54fc926",
+          "templateIds": [
+            "duplicate"
+          ],
+          "referenceIds": [],
+          "externalReferences": []
+        }
+      ],
+      [
+        "/Users/kiku28/Documents/GitHub/mdck/packages/parser/CACHE_IMPLEMENTATION_SUMMARY.md",
+        {
+          "filePath": "/Users/kiku28/Documents/GitHub/mdck/packages/parser/CACHE_IMPLEMENTATION_SUMMARY.md",
+          "size": 4587,
+          "mtime": 1751974813257,
+          "hash": "b591bef57f89c749fc6f77d571f62ba37f6ec6d0ec2e8f977512560e5023f034",
+          "templateIds": [],
+          "referenceIds": [],
+          "externalReferences": []
+        }
+      ],
+      [
+        "/Users/kiku28/Documents/GitHub/mdck/packages/parser/src/__tests__/fixtures/external-test/main.md",
+        {
+          "filePath": "/Users/kiku28/Documents/GitHub/mdck/packages/parser/src/__tests__/fixtures/external-test/main.md",
+          "size": 140,
+          "mtime": 1751974759521,
+          "hash": "d0979cfd7741e85ad407c561b9eccd292772334b8a2221641ddac5449236bd4d",
+          "templateIds": [
+            "main"
+          ],
+          "referenceIds": [
+            "duplicate",
+            "other"
+          ],
+          "externalReferences": [
+            "./external1.md",
+            "./external2.md"
+          ]
+        }
+      ],
+      [
+        "/Users/kiku28/Documents/GitHub/mdck/packages/parser/IMPLEMENTATION_STATUS.md",
+        {
+          "filePath": "/Users/kiku28/Documents/GitHub/mdck/packages/parser/IMPLEMENTATION_STATUS.md",
+          "size": 2808,
+          "mtime": 1751974758331,
+          "hash": "5b67cb65fde5f12cb79954e3ba1fc904478bd8f9378e8a220a71f0c8b0d627e3",
+          "templateIds": [],
+          "referenceIds": [],
+          "externalReferences": []
+        }
+      ],
+      [
+        "/Users/kiku28/Documents/GitHub/mdck/tmp_rovodev_test.md",
+        {
+          "filePath": "/Users/kiku28/Documents/GitHub/mdck/tmp_rovodev_test.md",
+          "size": 163,
+          "mtime": 1751976495728,
+          "hash": "681dc168cdcfa8ae7cc4b9bc0d8ac0e9b2177160fe8dbff15296b5aca40c4158",
+          "templateIds": [],
+          "referenceIds": [
+            "test-template"
+          ],
+          "externalReferences": []
+        }
+      ],
+      [
+        "/Users/kiku28/Documents/GitHub/mdck/packages/parser/src/run-lint-test-cases.md",
+        {
+          "filePath": "/Users/kiku28/Documents/GitHub/mdck/packages/parser/src/run-lint-test-cases.md",
+          "size": 825,
+          "mtime": 1751914185502,
+          "hash": "2040974d919dc79406b6884f15ffd591ae3a1991119ac3ac4bfdf9561ebe76d5",
+          "templateIds": [],
+          "referenceIds": [],
+          "externalReferences": [],
+          "errors": [
+            {
+              "type": "duplicate-definition",
+              "message": "Duplicate template definition: duplicate",
+              "templateId": "duplicate"
+            }
+          ]
+        }
+      ]
+    ]
+  },
+  "templates": {
+    "__type": "Map",
+    "entries": [
+      [
+        "duplicate",
+        {
+          "id": "duplicate",
+          "filePath": "/Users/kiku28/Documents/GitHub/mdck/packages/parser/src/__tests__/fixtures/external-test/external2.md",
+          "startLine": 2,
+          "endLine": 4,
+          "dependencies": [],
+          "lastModified": 1751979247184
+        }
+      ],
+      [
+        "main",
+        {
+          "id": "main",
+          "filePath": "/Users/kiku28/Documents/GitHub/mdck/packages/parser/src/__tests__/fixtures/external-test/main.md",
+          "startLine": 2,
+          "endLine": 6,
+          "dependencies": [
+            "duplicate",
+            "other"
+          ],
+          "lastModified": 1751979247184
+        }
+      ]
+    ]
+  },
+  "dependencies": {
+    "nodes": {
+      "__type": "Set",
+      "values": [
+        "duplicate",
+        "main"
+      ]
+    },
+    "edges": {
+      "__type": "Map",
+      "entries": [
+        [
+          "duplicate",
+          {
+            "__type": "Set",
+            "values": []
+          }
+        ],
+        [
+          "main",
+          {
+            "__type": "Set",
+            "values": [
+              "duplicate",
+              "other"
+            ]
+          }
+        ]
+      ]
+    },
+    "reverseEdges": {
+      "__type": "Map",
+      "entries": [
+        [
+          "duplicate",
+          {
+            "__type": "Set",
+            "values": [
+              "main"
+            ]
+          }
+        ],
+        [
+          "other",
+          {
+            "__type": "Set",
+            "values": [
+              "main"
+            ]
+          }
+        ]
+      ]
+    },
+    "cycles": []
+  }
+}

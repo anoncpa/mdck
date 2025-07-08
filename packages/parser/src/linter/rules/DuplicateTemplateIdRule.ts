@@ -29,23 +29,22 @@ export class DuplicateTemplateIdRule extends BaseLintRule {
         const location = locations[i];
         const firstLocation = locations[0];
 
-        results.push(
-          this.createResult(
-            `Duplicate template definition: "${duplicate.templateId}"${
-              firstLocation.filePath
-                ? ` (first defined in ${this.normalizeFilePath(firstLocation.filePath)}:${firstLocation.line})`
-                : ` (first defined at line ${firstLocation.line})`
-            }`,
-            location.line,
-            undefined,
-            false,
-            {
-              templateId: duplicate.templateId,
-              duplicateLocation: firstLocation,
-              allLocations: locations,
-            }
-          )
+        const result = this.createResult(
+          `Duplicate template definition: "${duplicate.templateId}"${
+            firstLocation.filePath
+              ? ` (first defined in ${this.normalizeFilePath(firstLocation.filePath)}:${firstLocation.line})`
+              : ` (first defined at line ${firstLocation.line})`
+          }`,
+          location.line,
+          undefined,
+          false,
+          {
+            templateId: duplicate.templateId,
+            duplicateLocation: firstLocation,
+            allLocations: locations,
+          }
         );
+        results.push(result);
       }
     }
 

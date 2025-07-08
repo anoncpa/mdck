@@ -1,0 +1,65 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": 1751974759520,
+  "projectRoot": "/Users/kiku28/Documents/GitHub/mdck/packages/parser/src/__tests__/unit/test-cache-project",
+  "files": {
+    "__type": "Map",
+    "entries": [
+      [
+        "/Users/kiku28/Documents/GitHub/mdck/packages/parser/src/__tests__/unit/test-cache-project/delete-test.md",
+        {
+          "filePath": "/Users/kiku28/Documents/GitHub/mdck/packages/parser/src/__tests__/unit/test-cache-project/delete-test.md",
+          "size": 52,
+          "mtime": 1751974759520,
+          "hash": "a10fd50e0bc7a0a083a6d0be8650acc238022aac6b03fa6d74156cf30370fd35",
+          "templateIds": [
+            "to-delete"
+          ],
+          "referenceIds": [],
+          "externalReferences": []
+        }
+      ]
+    ]
+  },
+  "templates": {
+    "__type": "Map",
+    "entries": [
+      [
+        "to-delete",
+        {
+          "id": "to-delete",
+          "filePath": "/Users/kiku28/Documents/GitHub/mdck/packages/parser/src/__tests__/unit/test-cache-project/delete-test.md",
+          "startLine": 1,
+          "endLine": 3,
+          "dependencies": [],
+          "lastModified": 1751974759521
+        }
+      ]
+    ]
+  },
+  "dependencies": {
+    "nodes": {
+      "__type": "Set",
+      "values": [
+        "to-delete"
+      ]
+    },
+    "edges": {
+      "__type": "Map",
+      "entries": [
+        [
+          "to-delete",
+          {
+            "__type": "Set",
+            "values": []
+          }
+        ]
+      ]
+    },
+    "reverseEdges": {
+      "__type": "Map",
+      "entries": []
+    },
+    "cycles": []
+  }
+}

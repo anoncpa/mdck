@@ -63,15 +63,15 @@ export class LintPreprocessor {
   private async analyzeTemplates(
     context: LintContext
   ): Promise<TemplateAnalysisResult> {
+    // 参照は常に収集可能（エラーに関係なく）
+    const references = this.templateExpander.collectReferences(context.ast);
+
     try {
-      // 定義と参照を並列で収集
-      const [definitions, references] = await Promise.all([
-        this.templateExpander.collectAllDefinitions(
-          context.ast,
-          context.filePath
-        ),
-        Promise.resolve(this.templateExpander.collectReferences(context.ast)),
-      ]);
+      // 定義の収集（重複エラーが発生する可能性がある）
+      const definitions = await this.templateExpander.collectAllDefinitions(
+        context.ast,
+        context.filePath
+      );
 
       return {
         status: 'success',
@@ -80,13 +80,15 @@ export class LintPreprocessor {
         issues: [],
       };
     } catch (error) {
-      // エラーを構造化された問題として記録
+      // エラーが発生した場合でも、参照情報は利用可能
+      // 個別の定義を収集して、重複以外の定義は保持
+      const partialDefinitions = this.collectPartialDefinitions(context.ast, context.filePath);
       const issues = this.convertErrorToIssues(error, context);
 
       return {
         status: 'error',
-        definitions: new Map(),
-        references: [],
+        definitions: partialDefinitions,
+        references,
         issues,
       };
     }
@@ -100,12 +102,17 @@ export class LintPreprocessor {
   ): readonly DuplicateTemplateInfo[] {
     if (analysis.status === 'error') {
       // エラー状態の場合、重複検出情報を問題リストから抽出
-      return analysis.issues
+      const duplicates = analysis.issues
         .filter((issue) => issue.type === 'duplicate-template')
-        .map((issue) => ({
-          templateId: issue.templateId,
-          locations: [{ line: issue.line }],
-        }));
+        .map((issue) => {
+          const allLines = issue.details?.allLines as number[] || [issue.line];
+          const locations = allLines.map(line => ({ line }));
+          return {
+            templateId: issue.templateId,
+            locations,
+          };
+        });
+      return duplicates;
     }
 
     // 重複チェック（通常は collectAllDefinitions で例外が発生するが、念のため）
@@ -142,10 +149,7 @@ export class LintPreprocessor {
   private findUndefinedReferences(
     analysis: TemplateAnalysisResult
   ): readonly TemplateReference[] {
-    if (analysis.status === 'error') {
-      return []; // エラー状態では参照チェックをスキップ
-    }
-
+    // エラー状態でも参照チェックは実行（部分的な定義情報を使用）
     return analysis.references.filter(
       (reference) => !analysis.definitions.has(reference.id)
     );
@@ -254,13 +258,19 @@ export class LintPreprocessor {
       );
       const templateId = match?.[1] || 'unknown';
 
+      // ASTから重複テンプレートの全ての位置を抽出
+      const templateLines = this.extractAllTemplateLines(templateId, context.ast);
+
       return [
         {
           type: 'duplicate-template',
           templateId,
           message: error.message,
-          line: this.extractLineFromError(error, context.ast),
-          details: { originalError: error.message },
+          line: templateLines[0] || 1, // 最初の出現位置
+          details: { 
+            originalError: error.message,
+            allLines: templateLines 
+          },
         },
       ];
     }
@@ -296,5 +306,64 @@ export class LintPreprocessor {
     });
 
     return firstTemplateLine;
+  }
+
+  /**
+   * 指定されたテンプレートIDの全ての出現位置を抽出
+   */
+  private extractAllTemplateLines(templateId: string, ast: Root): number[] {
+    const lines: number[] = [];
+
+    visit(ast, (node) => {
+      if (node.type === 'containerDirective') {
+        const directive = node as Directive;
+        if (directive.name === 'template' && directive.attributes?.id === templateId) {
+          const line = directive.position?.start.line ?? 1;
+          lines.push(line);
+        }
+      }
+    });
+
+    return lines;
+  }
+
+  /**
+   * 重複エラーが発生した場合でも、個別の定義を部分的に収集
+   * 重複していない定義は正常に利用可能にする
+   */
+  private collectPartialDefinitions(ast: Root, filePath?: string): TemplateDefinitions {
+    const definitions = new Map<string, TemplateDefinition>();
+    const seenIds = new Set<string>();
+
+    visit(ast, (node) => {
+      if (node.type === 'containerDirective') {
+        const directive = node as Directive;
+
+        if (directive.name === 'template' && directive.attributes) {
+          const templateId = this.templateExpander['extractTemplateId'](directive);
+
+          if (templateId && !seenIds.has(templateId)) {
+            // 最初の出現のみを記録（重複は無視）
+            seenIds.add(templateId);
+            const dependencies = this.templateExpander['extractDependencies'](directive);
+
+            const definition: TemplateDefinition = {
+              id: templateId,
+              content: directive.children || [],
+              filePath,
+              dependencies,
+              position: {
+                startLine: directive.position?.start.line ?? -1,
+                endLine: directive.position?.end.line ?? -1,
+              },
+            };
+
+            definitions.set(templateId, definition);
+          }
+        }
+      }
+    });
+
+    return definitions;
   }
 }

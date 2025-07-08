@@ -111,5 +111,18 @@ export type {
   CircularReferenceInfo,
 } from './lint-preprocessor-types';
 
+// キャッシュ関連型の再エクスポート
+export type {
+  CacheData,
+  CacheManagerConfig,
+  CacheUpdateResult,
+  CacheValidationResult,
+  FileChangeInfo,
+  FileMetadata,
+  CachedTemplateDefinition,
+  DependencyGraph,
+  CacheError,
+} from './cache-types';
+
 // 将来の拡張用のプレースホルダー
 export interface MdckConfig {}

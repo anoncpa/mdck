@@ -1,6 +1,6 @@
 // src/shared/lint-types.ts
 import type { Root } from 'mdast';
-import type { LintPreprocessResult } from './preprocessor-types';
+import type { LintPreprocessResult } from './lint-preprocessor-types';
 
 /**
  * Lintの重要度レベル

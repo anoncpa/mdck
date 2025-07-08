@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "tsx src/run.ts",
     "dev:lint": "tsx src/run-lint.ts",
+    "dev:cache": "tsx src/run-cache-test.ts",
     "build": "tsup",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
