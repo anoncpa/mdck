@@ -103,7 +103,7 @@ export class JunitFormatter implements Formatter {
       xml += `        Rule: ${result.ruleId}\n`;
       xml += `        Message: ${this.escapeXml(result.message)}\n`;
       xml += '      </failure>\n';
-    } else if (result.severity === 'warning') {
+    } else if (result.severity === 'warn') {
       xml += `      <system-out>\n`;
       xml += `        Warning: ${this.escapeXml(result.message)}\n`;
       xml += `        Rule: ${result.ruleId}\n`;

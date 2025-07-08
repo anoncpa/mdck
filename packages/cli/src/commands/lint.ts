@@ -175,15 +175,19 @@ function buildLintConfig(options: LintOptions): any {
   // ルール設定をMapで構築
   const rulesMap = new Map();
 
-  if (options.rules) {
-    const enabledRules = options.rules.split(',').map(rule => rule.trim());
+  if (options.rules && options.rules.length > 0) {
+    const enabledRules = options.rules.flatMap((rule: string) => 
+      rule.split(',').map((r: string) => r.trim())
+    );
     for (const rule of enabledRules) {
       rulesMap.set(rule, { enabled: true, severity: 'error' });
     }
   }
 
-  if (options.disableRules) {
-    const disabledRules = options.disableRules.split(',').map(rule => rule.trim());
+  if (options.disableRules && options.disableRules.length > 0) {
+    const disabledRules = options.disableRules.flatMap((rule: string) =>
+      rule.split(',').map((r: string) => r.trim())
+    );
     for (const rule of disabledRules) {
       rulesMap.set(rule, { enabled: false });
     }

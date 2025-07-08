@@ -124,12 +124,12 @@ export async function executeGenerateCommand(options: GenerateOptions): Promise<
         templateDef.filePath
       );
       
-      if (!expansionResult.success) {
-        throw new Error(`Template expansion failed: ${expansionResult.error}`);
+      if (expansionResult.status !== 'success') {
+        throw new Error(`Template expansion failed: ${expansionResult.message}`);
       }
       
       // ASTを文字列に変換
-      const expandedContent = parser.stringify(expansionResult.ast);
+      const expandedContent = parser.stringify(expansionResult.expandedAst);
 
       spinner.succeed(`Generated content from template '${options.templateId}'`);
 

@@ -290,7 +290,7 @@ function generateBashCompletionScript(): string {
             COMPREPLY=($(compgen -W "lint generate cache validate completion" -- "$cur"))
             ;;
         *)
-            case ${words[1]} in
+            case \${words[1]} in
                 lint|validate)
                     local files=$(mdck completion --type file --current "$cur" 2>/dev/null)
                     COMPREPLY=($(compgen -W "$files" -- "$cur"))

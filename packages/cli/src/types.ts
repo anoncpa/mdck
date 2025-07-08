@@ -1,5 +1,5 @@
 // src/types.ts
-import type { LintReport, LintResult } from '@mdck/parser';
+import type { LintReport } from '@mdck/parser';
 
 /**
  * CLI共通の型定義
@@ -55,6 +55,8 @@ export interface LintOptions {
   verbose?: boolean;
   /** 静音モード */
   quiet?: boolean;
+  /** 色付き出力を有効にするか */
+  color?: boolean;
 }
 
 /**
@@ -69,6 +71,12 @@ export interface GenerateOptions {
   force?: boolean;
   /** 変数の値 */
   variables?: Record<string, string>;
+  /** キャッシュを使用するか */
+  cache?: boolean;
+  /** 詳細出力 */
+  verbose?: boolean;
+  /** 静音モード */
+  quiet?: boolean;
 }
 
 /**
@@ -81,6 +89,10 @@ export interface CacheOptions {
   rebuild?: boolean;
   /** キャッシュ情報を表示するか */
   info?: boolean;
+  /** 詳細出力 */
+  verbose?: boolean;
+  /** 静音モード */
+  quiet?: boolean;
 }
 
 /**
@@ -97,6 +109,10 @@ export interface ConfigOptions {
   list?: boolean;
   /** グローバル設定を使用するか */
   global?: boolean;
+  /** 詳細出力 */
+  verbose?: boolean;
+  /** 静音モード */
+  quiet?: boolean;
 }
 
 /**

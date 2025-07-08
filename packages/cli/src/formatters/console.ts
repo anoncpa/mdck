@@ -190,7 +190,7 @@ export class ConsoleFormatter implements Formatter {
     
     for (const result of results) {
       // LintResultにfilePathプロパティがない場合は、reportから取得
-      const filePath = 'filePath' in result ? result.filePath : report.filePath || 'unknown';
+      const filePath = result.filePath || 'unknown';
       if (!groups.has(filePath)) {
         groups.set(filePath, []);
       }
