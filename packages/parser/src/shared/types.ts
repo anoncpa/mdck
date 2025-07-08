@@ -91,16 +91,25 @@ export type {
 export type { FileResolutionResult } from '../core/file-resolver';
 
 // Lint関連型の再エクスポート
- export type {
-   LintResult,
-   LintReport,
-   LintRule,
-   LintContext,
-   LintConfig,
-   LintRuleConfig,
-   LintSeverity,
-   LintRuleId,
- } from './lint-types';
+export type {
+  LintResult,
+  LintReport,
+  LintRule,
+  LintContext,
+  LintConfig,
+  LintRuleConfig,
+  LintSeverity,
+  LintRuleId,
+} from './lint-types';
+
+// 前処理関連型の再エクスポート
+export type {
+  LintPreprocessResult,
+  TemplateAnalysisResult,
+  TemplateIssue,
+  DuplicateTemplateInfo,
+  CircularReferenceInfo,
+} from './lint-preprocessor-types';
 
 // 将来の拡張用のプレースホルダー
 export interface MdckConfig {}

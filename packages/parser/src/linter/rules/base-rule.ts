@@ -6,11 +6,11 @@ import type {
   LintRuleId,
   LintSeverity,
 } from '../../shared/lint-types';
-import { Directive } from '../../shared/types';
+import type { LintPreprocessResult } from '../../shared/lint-preprocessor-types';
 
 /**
- * 全Lintルールの基底クラス
- * 共通処理と型安全性を提供し、具体的なルールは検証ロジックに集中できる
+ * 改善された全Lintルールの基底クラス
+ * 前処理結果への安全なアクセスと共通ユーティリティを提供
  */
 export abstract class BaseLintRule implements LintRule {
   public abstract readonly id: LintRuleId;
@@ -19,14 +19,13 @@ export abstract class BaseLintRule implements LintRule {
 
   /**
    * Lintルールの実行（子クラスでオーバーライド）
-   * @param context - Lint実行コンテキスト
+   * @param context - 前処理結果を含むLint実行コンテキスト
    * @returns 発見された問題のリスト
    */
   public abstract check(context: LintContext): Promise<readonly LintResult[]>;
 
   /**
    * LintResult作成のヘルパーメソッド
-   * 型安全性を保ちつつ、共通フィールドの設定を簡素化
    */
   protected createResult(
     message: string,
@@ -47,41 +46,24 @@ export abstract class BaseLintRule implements LintRule {
   }
 
   /**
-   * ディレクティブからテンプレートIDを安全に抽出
-   * null/undefinedを適切に処理
+   * 前処理結果への安全なアクセス
+   * 前処理が実行されていない場合の安全な処理
    */
-  protected extractTemplateId(directive: Directive): string | null {
-    if (!directive.attributes) return null;
-
-    // 型安全な属性値取得
-    const idValue = directive.attributes.id || directive.attributes['#id'];
-
-    // null/undefinedチェック
-    if (typeof idValue === 'string') {
-      return idValue;
-    }
-
-    return null;
+  protected getPreprocessResult(
+    context: LintContext
+  ): LintPreprocessResult | null {
+    return context.preprocessResult || null;
   }
 
   /**
-   * 属性を安全にRecord<string, string>に変換
+   * 前処理結果が利用可能かチェック
    */
-  protected safeGetAttributes(directive: Directive): Record<string, string> {
-    if (!directive.attributes) return {};
-
-    const safeAttributes: Record<string, string> = {};
-    for (const [key, value] of Object.entries(directive.attributes)) {
-      if (typeof value === 'string') {
-        safeAttributes[key] = value;
-      }
-    }
-    return safeAttributes;
+  protected hasPreprocessResult(context: LintContext): boolean {
+    return context.preprocessResult !== undefined;
   }
 
   /**
    * ファイルパスの正規化
-   * 相対パスを扱いやすい形式に変換
    */
   protected normalizeFilePath(filePath?: string): string {
     if (!filePath) return '<unknown>';

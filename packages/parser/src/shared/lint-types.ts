@@ -1,5 +1,6 @@
 // src/shared/lint-types.ts
 import type { Root } from 'mdast';
+import type { LintPreprocessResult } from './preprocessor-types';
 
 /**
  * Lintの重要度レベル
@@ -45,6 +46,8 @@ export interface LintContext {
   readonly filePath?: string;
   /** プロジェクトのルートディレクトリ */
   readonly projectRoot?: string;
+  /** 前処理結果（ルール実行時に提供） */
+  readonly preprocessResult?: LintPreprocessResult;
 }
 
 /**
@@ -61,7 +64,7 @@ export interface LintRule {
 
   /**
    * Lintルールを実行し、問題があれば結果を返す
-   * @param context - Lint実行コンテキスト
+   * @param context - Lint実行コンテキスト（前処理結果を含む）
    * @returns 発見された問題のリスト（問題がなければ空配列）
    */
   check(context: LintContext): Promise<readonly LintResult[]>;
@@ -103,6 +106,8 @@ export interface LintReport {
   readonly infoCount: number;
   /** 実行時間（ミリ秒） */
   readonly duration: number;
+  /** 前処理の実行時間（ミリ秒） */
+  readonly preprocessDuration: number;
 }
 
 export interface LintEngineConfig {

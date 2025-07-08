@@ -7,6 +7,7 @@ import type {
   LintRule,
   LintRuleId,
 } from '../shared/lint-types';
+import { LintPreprocessor } from './preprocessor';
 import {
   CircularReferenceRule,
   DuplicateTemplateIdRule,
@@ -14,21 +15,23 @@ import {
 } from './rules';
 
 /**
- * Lintルールの実行エンジン
- * 複数のルールを統合し、設定に基づいて実行を制御する
+ * 改善されたLintルール実行エンジン
+ * 前処理による情報共有でルール間の依存関係を排除し、並列実行を実現
  */
 export class RuleEngine {
   private readonly rules: ReadonlyMap<LintRuleId, LintRule>;
+  private readonly preprocessor: LintPreprocessor;
   private config: LintConfig;
 
   constructor(config?: Partial<LintConfig>) {
-    // Map作成を分離し、型安全性を確保
+    // ルールマップの初期化
     const ruleMap = new Map<LintRuleId, LintRule>();
     ruleMap.set('M002', new DuplicateTemplateIdRule());
     ruleMap.set('M003', new UndefinedTemplateReferenceRule());
     ruleMap.set('M004', new CircularReferenceRule());
 
     this.rules = ruleMap;
+    this.preprocessor = new LintPreprocessor();
     this.config = this.buildConfig(config);
   }
 
@@ -38,37 +41,42 @@ export class RuleEngine {
 
   /**
    * 指定されたコンテキストに対してLintを実行
-   * @param context - Lint実行コンテキスト
-   * @returns Lint実行結果のレポート
+   * 前処理 → ルール並列実行 → 結果統合の流れで処理
    */
   public async lint(context: LintContext): Promise<LintReport> {
     const startTime = Date.now();
-    const allResults: LintResult[] = [];
 
-    // 有効なルールのみを実行
+    // 1. 前処理の実行
+    const preprocessResult = await this.preprocessor.analyze(context);
+
+    // 2. 前処理結果を含む拡張コンテキストを作成
+    const enhancedContext: LintContext = {
+      ...context,
+      preprocessResult,
+    };
+
+    // 3. 有効なルールを取得
     const enabledRules = Array.from(this.rules.entries()).filter(([ruleId]) =>
       this.isRuleEnabled(ruleId)
     );
 
-    // 各ルールを並列実行（独立性を保証）
+    // 4. ルールを並列実行（前処理により完全に独立）
     const rulePromises = enabledRules.map(async ([ruleId, rule]) => {
       try {
-        const results = await rule.check(context);
-        // 設定による重要度の上書きを適用
+        const results = await rule.check(enhancedContext);
         return this.applySeverityOverrides(ruleId, results);
       } catch (error) {
-        // ルール実行中のエラーをキャッチし、内部エラーとして記録
         console.warn(`Rule ${ruleId} failed:`, error);
         return [];
       }
     });
 
     const ruleResults = await Promise.all(rulePromises);
-    allResults.push(...ruleResults.flat());
+    const allResults: LintResult[] = ruleResults.flat();
 
     const duration = Date.now() - startTime;
 
-    // 結果の統計を計算
+    // 5. 結果の統計を計算
     const errorCount = allResults.filter((r) => r.severity === 'error').length;
     const warningCount = allResults.filter((r) => r.severity === 'warn').length;
     const infoCount = allResults.filter((r) => r.severity === 'info').length;
@@ -80,12 +88,12 @@ export class RuleEngine {
       warningCount,
       infoCount,
       duration,
+      preprocessDuration: preprocessResult.preprocessDuration,
     };
   }
 
   /**
    * 利用可能なルールのリストを取得
-   * @returns 登録されているすべてのルール
    */
   public getAvailableRules(): ReadonlyMap<LintRuleId, LintRule> {
     return this.rules;
@@ -107,7 +115,6 @@ export class RuleEngine {
 
     const configRules = partialConfig?.rules || new Map();
 
-    // デフォルトと指定設定をマージ
     const mergedRules = new Map(defaultRules);
     for (const [ruleId, ruleConfig] of configRules) {
       mergedRules.set(ruleId, {
