@@ -7,6 +7,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "dev": "tsx src/run.ts",
+    "dev:lint": "tsx src/run-lint.ts",
     "build": "tsup",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",

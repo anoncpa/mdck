@@ -11,7 +11,7 @@ import {
   CircularReferenceRule,
   DuplicateTemplateIdRule,
   UndefinedTemplateReferenceRule,
-} from './rules/template-rules';
+} from './rules';
 
 /**
  * Lintルールの実行エンジン
