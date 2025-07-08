@@ -11,22 +11,21 @@
 | ルール ID | 重大度 | エラー内容                   | 自動修正 | カスタマイズ可 | 検出ロジック詳細                                                                      |
 | :-------- | :----- | :--------------------------- | :------- | :------------- | :------------------------------------------------------------------------------------ |
 | **M001**  | error  | template id 変更不可         | ×        | ×              | Git diff 比較により旧 template id と現在値を照合。staging 時に検出                    |
-| **M002**  | error  | template id 重複定義         | ×        | ○              | 同じプロジェクト内で同じ `#id` 属性を持つ`::template{}`定義が複数存在                 |
-| **M003**  | error  | template 未定義参照          | ×        | ○              | `::template{#id=x src=./file.md}`（参照）に対応する定義が見つからない                 |
+| **M002**  | error  | template id 重複定義         | ×        | ○              | 同じプロジェクト内で同じ `id` 属性を持つ`:::template{}`定義が複数存在                 |
+| **M003**  | error  | template 未定義参照          | ×        | ○              | `::template{id=x src=./file.md}`（参照）に対応する定義が見つからない                 |
 | **M004**  | error  | 循環参照検出                 | ×        | ○              | template 展開時の id 履歴で同一 id の再出現を検出                                     |
 | **M005**  | error  | 外部ファイル未発見           | ×        | ○              | `src`属性で指定されたファイルパスが存在しない                                         |
-| **M006**  | error  | ディレクティブ名大文字化違反 | ○        | ○              | `::Template{}`, `::Tag{}`, `::Result{}`など大文字で始まるディレクティブ名の使用を検出 |
-| **M007**  | error  | 属性名規則違反               | ○        | ○              | `id`属性の代わりに`#id`属性を強制                                                     |
-| **M010**  | error  | tag id 重複                  | ×        | ○              | 展開後AST内で同一 `#id` 属性を持つ`::tag{}`が複数存在                                 |
+| **M006**  | error  | ディレクティブ名大文字化違反 | ○        | ○              | `::Template{}`, `::Tag{}`, `:::Result{}`など大文字で始まるディレクティブ名の使用を検出 |
+| **M010**  | error  | tag id 重複                  | ×        | ○              | 展開後AST内で同一 `id` 属性を持つ`::tag{}`が複数存在                                 |
 | **M011**  | warn   | tag id 形式不正              | ×        | ○              | tag id が設定された形式でない場合（config.yml で形式指定可）                          |
-| **M020**  | error  | 必須 result 欠落             | ○        | ○              | `mandatory=true`属性付き`::tag{}`の直後に`::result{}`ブロックが無い                   |
-| **M021**  | warn   | result 文字数超過            | ×        | ○              | `::result{}`内のテキストが設定文字数（デフォルト 2000）を超過                         |
-| **M022**  | warn   | result 内容空                | ○        | ○              | `::result{}`または`::result{}`内が空白のみ                                            |
+| **M020**  | error  | 必須 result 欠落             | ○        | ○              | `mandatory=true`属性付き`::tag{}`の直後に`:::result{}`ブロックが無い                   |
+| **M021**  | warn   | result 文字数超過            | ×        | ○              | `:::result{}`内のテキストが設定文字数（デフォルト 2000）を超過                         |
+| **M022**  | warn   | result 内容空                | ○        | ○              | `:::result{}`または`:::result{}`内が空白のみ                                            |
 | **M030**  | error  | チェックボックス記法不正     | ○        | ○              | リスト項目が`- [ ]`または`- [x]`で始まらない                                          |
-| **M040**  | error  | template 構文エラー          | ×        | ×              | `::template{}`ディレクティブの開始・終了が不整合、または必須属性欠落                  |
+| **M040**  | error  | template 構文エラー          | ×        | ×              | `:::template{}`ディレクティブの開始・終了が不整合、または必須属性欠落                  |
 | **M041**  | error  | tag 構文エラー               | ×        | ×              | `::tag{}`ディレクティブの構文が不正、または必須属性欠落                               |
-| **M042**  | error  | result 構文エラー            | ×        | ×              | `::result{}`ディレクティブの開始・終了が不整合                                        |
-| **M043**  | error  | ブロック系/自己終了系混合    | ○        | ○              | `::template{}`がブロック系でなく自己終了系で使われている場合                          |
+| **M042**  | error  | result 構文エラー            | ×        | ×              | `:::result{}`ディレクティブの開始・終了が不整合                                        |
+| **M043**  | error  | container/自己終了系混合    | ○        | ○              | `:::template{}`がcontainerでなく自己終了系で使われている場合                          |
 | **M051**  | error  | template id 属性形式不正     | ×        | ○              | template id 属性値が空または不正文字を含む                                            |
 | **M060**  | info   | カスタム項目検出             | ×        | ○              | `::tag{}`なしのチェックボックス項目を検出                                             |
 | **M061**  | warn   | 未使用 template              | ×        | ○              | 定義されているが参照されていない template                                             |
@@ -313,7 +312,7 @@ function detectDirectiveSyntaxErrors(ast: Root): LintResult[] {
       }
     }
 
-    // M043: ブロック系/自己終了系混合チェック
+    // M043: container/自己終了系混合チェック
     if (node.name === 'template') {
       const hasChildren = node.children && node.children.length > 0;
       const hasSrc = node.attributes && node.attributes.src;
@@ -456,7 +455,7 @@ enforceDirectiveFormat: true \# ディレクティブ形式強制
 - **検出対象**: `::template{id="..."}` の `id` 属性
 - **修正内容**: `#id` 属性に自動変換
 
-### M043: ブロック系/自己終了系混合
+### M043: container/自己終了系混合
 
 - **検出対象**:
   - `::template{#id=x src=./file.md} ... ::` のような混合形式

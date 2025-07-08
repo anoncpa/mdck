@@ -8,38 +8,34 @@
 
 ### 2.1 実行時依存関係
 
-```
-
+```json
 {
-"dependencies": {
-"remark": "^15.0.1",
-"remark-directive": "^3.0.0",
-"unified": "^11.0.4",
-"mdast-util-directive": "^3.0.0",
-"yaml": "^2.3.4"
+  "dependencies": {
+    "remark": "^15.0.1",
+    "remark-directive": "^3.0.0",
+    "unified": "^11.0.4",
+    "mdast-util-directive": "^3.0.0",
+    "yaml": "^2.3.4"
+  }
 }
-}
-
 ```
 
 ### 2.2 開発時依存関係
 
-```
-
+```json
 {
-"devDependencies": {
-"typescript": "^5.2.2",
-"@types/node": "^20.8.7",
-"@types/mdast": "^4.0.3",
-"vitest": "^0.34.6",
-"eslint": "^8.52.0",
-"@typescript-eslint/eslint-plugin": "^6.9.1",
-"@typescript-eslint/parser": "^6.9.1",
-"tsup": "^7.2.0",
-"rimraf": "^5.0.5"
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "@types/node": "^20.8.7",
+    "@types/mdast": "^4.0.3",
+    "vitest": "^0.34.6",
+    "eslint": "^8.52.0",
+    "@typescript-eslint/eslint-plugin": "^6.9.1",
+    "@typescript-eslint/parser": "^6.9.1",
+    "tsup": "^7.2.0",
+    "rimraf": "^5.0.5"
+  }
 }
-}
-
 ```
 
 ### 2.3 依存関係の詳細
@@ -54,7 +50,7 @@
 
 ### 2.4 Node.js 標準ライブラリ使用
 
-```
+```typescript
 
 // ファイルI/O
 import { readFile, writeFile, mkdir, access, readdir } from 'fs/promises';
