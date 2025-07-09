@@ -2,8 +2,8 @@
 
 [English](./README.md) | [日本語](./README.ja.md)
 
-[!WARNING]
-This package is experimental and is not yet published on npmjs, so you cannot install it with npm install. Please be aware that its specifications may change significantly.
+> [!WARNING]
+> This package is experimental and is not yet published on npmjs, so you cannot install it with npm install. Please be aware that its specifications may change significantly.
 
 A powerful toolkit for creating, managing, and validating Markdown templates with intelligent linting and cross-file dependency tracking.
 
