@@ -144,7 +144,7 @@ export class MdckParser {
 
     for (const [filePath, content] of contents) {
       const ast = processor.parse(content);
-      const definitions = this.templateExpander.collectDefinitions(
+      const definitions = await this.templateExpander.collectDefinitions(
         ast,
         filePath
       );
