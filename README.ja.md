@@ -1,6 +1,6 @@
 # mdck - Markdown Check List
 
-:::warning
+[!WARNING]
 このパッケージは実験的に作成されたものであり、
 現在はnpmjsに登録されていないため、npm installは実行できません。
 また、大幅に仕様を変える可能性もあるためご注意ください。
