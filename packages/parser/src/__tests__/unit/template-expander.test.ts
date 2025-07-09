@@ -12,7 +12,7 @@ describe('TemplateExpander', () => {
   });
 
   describe('collectDefinitions', () => {
-    it('シンプルなテンプレート定義を収集できる', () => {
+    it('シンプルなテンプレート定義を収集できる', async () => {
       const markdown = `
 :::template{id="simple"}
 # Simple Template
@@ -21,7 +21,7 @@ describe('TemplateExpander', () => {
       `;
 
       const ast = processor.parse(markdown) as Root;
-      const definitions = expander.collectDefinitions(ast);
+      const definitions = await expander.collectDefinitions(ast);
 
       expect(definitions.size).toBe(1);
       expect(definitions.has('simple')).toBe(true);
@@ -31,7 +31,7 @@ describe('TemplateExpander', () => {
       expect(definition?.content).toHaveLength(2); // heading + list
     });
 
-    it('複数のテンプレート定義を収集できる', () => {
+    it('複数のテンプレート定義を収集できる', async () => {
       const markdown = `
 :::template{id="first"}
 # First Template
@@ -43,14 +43,14 @@ describe('TemplateExpander', () => {
       `;
 
       const ast = processor.parse(markdown) as Root;
-      const definitions = expander.collectDefinitions(ast);
+      const definitions = await expander.collectDefinitions(ast);
 
       expect(definitions.size).toBe(2);
       expect(definitions.has('first')).toBe(true);
       expect(definitions.has('second')).toBe(true);
     });
 
-    it('重複するテンプレート定義でエラーになる', () => {
+    it('重複するテンプレート定義でエラーになる', async () => {
       const markdown = `
 :::template{id="duplicate"}
 # First
@@ -63,9 +63,9 @@ describe('TemplateExpander', () => {
 
       const ast = processor.parse(markdown) as Root;
 
-      expect(() => {
-        expander.collectDefinitions(ast);
-      }).toThrow('Duplicate template definition: duplicate');
+      await expect(async () => {
+        await expander.collectDefinitions(ast);
+      }).rejects.toThrow('Duplicate template definition: duplicate');
     });
   });
 
@@ -103,7 +103,7 @@ describe('TemplateExpander', () => {
       `;
 
       const ast = processor.parse(markdown) as Root;
-      const definitions = expander.collectDefinitions(ast);
+      const definitions = await expander.collectDefinitions(ast);
       const result = await expander.expandTemplate('main', definitions);
 
       expect(result.status).toBe('success');
@@ -128,7 +128,7 @@ describe('TemplateExpander', () => {
       `;
 
       const ast = processor.parse(markdown) as Root;
-      const definitions = expander.collectDefinitions(ast);
+      const definitions = await expander.collectDefinitions(ast);
       const result = await expander.expandTemplate('parent', definitions);
 
       expect(result.status).toBe('success');
@@ -153,7 +153,7 @@ describe('TemplateExpander', () => {
       `;
 
       const ast = processor.parse(markdown) as Root;
-      const definitions = expander.collectDefinitions(ast);
+      const definitions = await expander.collectDefinitions(ast);
       const result = await expander.expandTemplate('a', definitions);
 
       expect(result.status).toBe('error');
@@ -172,7 +172,7 @@ describe('TemplateExpander', () => {
       `;
 
       const ast = processor.parse(markdown) as Root;
-      const definitions = expander.collectDefinitions(ast);
+      const definitions = await expander.collectDefinitions(ast);
       const result = await expander.expandTemplate('main', definitions);
 
       expect(result.status).toBe('error');
@@ -190,7 +190,7 @@ describe('TemplateExpander', () => {
       `;
 
       const ast = processor.parse(markdown) as Root;
-      const definitions = expander.collectDefinitions(ast);
+      const definitions = await expander.collectDefinitions(ast);
       const result = await expander.expandTemplate('nonexistent', definitions);
 
       expect(result.status).toBe('error');
