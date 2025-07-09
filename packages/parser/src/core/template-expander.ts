@@ -27,7 +27,18 @@ export class TemplateExpander {
    * @param filePath ファイルパス（外部ファイル対応時に使用）
    * @returns 収集されたテンプレート定義のマップ
    */
-  public collectDefinitions(ast: Root, filePath?: string): TemplateDefinitions {
+  public async collectDefinitions(ast: Root, filePath?: string): Promise<TemplateDefinitions> {
+    // カスタムディレクティブ処理を適用
+    const processor = await import('./processor').then(m => m.processor);
+    const transformedAst = await processor.run(ast);
+    
+    return this.collectDefinitionsFromAst(transformedAst, filePath);
+  }
+
+  /**
+   * 変換済みASTからテンプレート定義を収集する内部メソッド
+   */
+  private collectDefinitionsFromAst(ast: Root, filePath?: string): TemplateDefinitions {
     const definitions = new Map<string, TemplateDefinition>();
 
     visit(ast, (node) => {
@@ -88,7 +99,7 @@ export class TemplateExpander {
       }
 
       // 1. 現在のファイルの定義を収集
-      const currentDefinitions = this.collectDefinitions(
+      const currentDefinitions = await this.collectDefinitions(
         currentAst,
         currentFilePath
       );
