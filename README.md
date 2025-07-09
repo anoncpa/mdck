@@ -1,5 +1,7 @@
 # mdck - Markdown Check List
 
+[English](./README.md) | [日本語](./README.ja.md)
+
 A powerful toolkit for creating, managing, and validating Markdown templates with intelligent linting and cross-file dependency tracking.
 
 ## 🚀 Overview
