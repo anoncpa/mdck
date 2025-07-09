@@ -12,9 +12,9 @@
 {
   "dependencies": {
     "@mdck/parser": "^1.0.0",
-    "commander": "^11.1.0",
-    "chalk": "^5.3.0",
-    "ora": "^7.0.1"
+    "commander": "^14.0.0",
+    "chalk": "^5.4.1",
+    "ora": "^8.2.0"
   }
 }
 ```
@@ -52,8 +52,6 @@
 │   │   ├── file-finder.ts    # ファイル検索
 │   │   └── exit-codes.ts     # 終了コード
 │   └── types.ts              # 型定義
-├── bin/
-│   └── mdck.js               # 実行ファイル
 ├── package.json
 ├── tsconfig.json
 └── README.md
